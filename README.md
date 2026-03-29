@@ -1,3 +1,5 @@
+<img src="./CODEANALYST.png" alt="CODEANALYST" width="100%" />
+
 # 🔬 CODEANALYST
 
 Know what your vibe-coded projects are *actually* using. 👀
@@ -18,12 +20,13 @@ CODEANALYST scans your codebase and shows which external programs/commands appea
 git clone https://github.com/safrano9999/CODEANALYST.git
 cd CODEANALYST
 python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python app.py
+./venv/bin/python -m pip install -r requirements.txt
+./venv/bin/python app.py
 ```
 
 Open: `http://127.0.0.1:7720`
+
+No global Python/pip needed: everything runs from `./venv/bin/...` ✅
 
 ## ⚙️ Minimal Config
 
