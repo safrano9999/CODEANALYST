@@ -111,7 +111,7 @@
     .rank-item.selected{background:#1b2b3f;border-left:3px solid var(--blue)}
     .rank-num{color:#5f6874;font-size:0.75rem;width:22px;text-align:right;flex-shrink:0}
     .rank-name{flex:1;font-size:0.9rem;color:#e6edf3;font-family:monospace}
-    .rank-bar-wrap{width:84px;flex-shrink:0}
+    .rank-bar-wrap{width:140px;flex-shrink:0}
     .rank-bar{height:6px;background:var(--blue-strong);border-radius:3px}
     .rank-count{color:var(--blue);font-size:0.8rem;width:36px;text-align:right;flex-shrink:0;font-family:monospace}
     .empty{color:#6e7884;padding:1.2rem;text-align:center;font-size:0.9rem}
@@ -855,12 +855,14 @@
       setSetupStatus('No folders selected (staged) · click Scan after selection', 'warn');
     }
 
-    function addTargetDir() {
+    async function addTargetDir() {
       const input = document.getElementById('extra-dir');
       if (!input) return;
       const raw = (input.value || '').trim();
       if (!raw) {
         setSetupStatus('Enter a directory path first', 'warn');
+        input.style.borderColor = 'var(--warn)';
+        setTimeout(() => { input.style.borderColor = ''; }, 1500);
         return;
       }
 
@@ -873,6 +875,21 @@
         refreshAfterRuntimeFilterChange();
         if (shouldPromptRescan(existing.path, true)) showRescanHint();
         setSetupStatus(`Added existing: ${existing.path} (staged)`, 'ok');
+        return;
+      }
+
+      // Validate path exists on server before adding
+      try {
+        const res = await fetch(`/api/tree?path=${encodeURIComponent(raw)}`);
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          setSetupStatus(`Path not found: ${raw}`, 'warn');
+          input.style.borderColor = 'var(--warn)';
+          setTimeout(() => { input.style.borderColor = ''; }, 2000);
+          return;
+        }
+      } catch (e) {
+        setSetupStatus('Could not verify path', 'warn');
         return;
       }
 
