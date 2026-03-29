@@ -1,0 +1,4 @@
+# Glob patterns for shell-script files
+*.sh
+*.bash
+*.zsh

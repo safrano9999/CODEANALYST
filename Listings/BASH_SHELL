@@ -1,0 +1,40 @@
+# CODEANALYST mode file: BASH_SHELL
+# Lines with wildcards or dots are treated as file patterns.
+# Other lines are treated as syntax tokens.
+
+# File patterns
+*.sh
+*.bash
+*.zsh
+Dockerfile
+Makefile
+Procfile
+
+# Syntax tokens
+if
+then
+fi
+for
+do
+done
+while
+case
+esac
+elif
+else
+local
+return
+exit
+continue
+break
+set
+shift
+trap
+function
+select
+wait
+declare
+echo
+read
+source
+true

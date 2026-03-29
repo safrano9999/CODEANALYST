@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CODEANALYST 🔬</title>
+  <style>
+    :root{
+      --bg:#0d1117;
+      --surface:#161b22;
+      --surface-2:#0f141b;
+      --line:#30363d;
+      --text:#c9d1d9;
+      --muted:#8b949e;
+      --blue:#58a6ff;
+      --blue-strong:#1f6feb;
+      --ok:#3fb950;
+      --warn:#f0883e;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;scrollbar-width:thin;scrollbar-color:#4a5f7c #0f141b}
+    *::-webkit-scrollbar{width:10px;height:10px}
+    *::-webkit-scrollbar-track{background:#0f141b;border-radius:999px}
+    *::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#5f7ea4,#3f5778);border-radius:999px;border:2px solid #0f141b}
+    *::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#7b9fc7,#53739c)}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',monospace;background:var(--bg);color:var(--text);min-height:100vh;padding:1.5rem;display:flex;flex-direction:column;gap:0.85rem}
+    h1{font-size:1.6rem;color:var(--blue);margin-bottom:0.2rem}
+    .subtitle{color:#6d7681;font-size:0.85rem;margin-bottom:1.2rem}
+    .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+    .panel-head{padding:0.7rem 1rem;border-bottom:1px solid var(--line);font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;display:flex;justify-content:space-between;align-items:center;gap:0.7rem}
+    .panel-tools{padding:0.55rem 1rem;border-bottom:1px solid #242a31;display:flex;gap:0.45rem;flex-wrap:wrap}
+    .status{font-size:0.78rem;color:#7d8793;text-transform:none;letter-spacing:0}
+    .status.warn{color:var(--warn)}
+    .status.ok{color:var(--ok)}
+    .btn{padding:0.42rem 0.9rem;border-radius:6px;border:1px solid var(--line);background:#21262d;color:var(--text);cursor:pointer;font-size:0.82rem;font-family:inherit}
+    .btn:hover{background:#2b3139;color:var(--blue)}
+    .btn.active{background:var(--blue-strong);border-color:var(--blue-strong);color:#fff}
+    .btn.primary{background:var(--blue-strong);border-color:var(--blue-strong);color:#fff}
+    .btn.primary:hover{filter:brightness(1.08)}
+    .btn:disabled{opacity:0.55;cursor:not-allowed}
+    .setup-panel{display:flex;flex-direction:column;min-height:340px}
+    .setup-toolbar{padding:0.75rem 1rem;border-bottom:1px solid #242a31;display:flex;gap:0.55rem;flex-wrap:wrap;align-items:center}
+    .scan-hint{margin:0.55rem 1rem 0;padding:0.5rem 0.75rem;border-radius:8px;border:1px solid #5a4a2a;background:#2a2112;color:#ffd79a;font-size:0.8rem}
+    .setup-toolbar input[type=text]{padding:0.45rem 0.65rem;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:0.82rem;font-family:inherit;min-width:280px;flex:1}
+    .setup-toolbar input[type=text]:focus{outline:none;border-color:var(--blue)}
+    .target-list{overflow:auto;padding:0.45rem 0.5rem;min-height:260px;max-height:calc(100vh - 220px)}
+    body.no-data .setup-panel{flex:1;min-height:0}
+    body.no-data .target-list{flex:1;max-height:none}
+    body.has-data .target-list{max-height:min(58vh,740px)}
+    .tree-row{display:flex;align-items:center;gap:0.55rem;padding:0.32rem 0.5rem;border-radius:7px;border:1px solid transparent}
+    .tree-row:hover{background:#141a22;border-color:#222a33}
+    .tree-toggle{width:22px;height:22px;border-radius:6px;border:1px solid #2f3e52;background:#1a2737;color:#bcd2ea;cursor:pointer;line-height:1}
+    .tree-toggle:hover{border-color:#4f6783;color:#d9e8f8}
+    .tree-toggle.empty{opacity:0.3;cursor:default}
+    .tree-toggle.loading{opacity:0.8;cursor:wait}
+    .target-item{display:flex;align-items:center;gap:0.6rem;padding:0.45rem 0.6rem;border-radius:7px;border:1px solid transparent}
+    .target-item:hover{background:#141a22;border-color:#222a33}
+    .target-item input[type=checkbox]{width:14px;height:14px;accent-color:var(--blue-strong)}
+    .target-meta{display:flex;align-items:center;gap:0.55rem;min-width:0;flex-wrap:wrap}
+    .target-name{font-size:0.84rem;color:#e6edf3}
+    .target-path{font-size:0.76rem;color:#6e7884;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+    .badge{font-size:0.68rem;color:#9eb5cc;background:#1b2633;border:1px solid #2f4258;border-radius:999px;padding:0.1rem 0.45rem}
+    .toolbar{display:flex;gap:0.75rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap}
+    .toolbar input[type=text]{padding:0.45rem 0.75rem;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:0.84rem;font-family:inherit;width:220px}
+    .toolbar input[type=text]:focus{outline:none;border-color:var(--blue)}
+    .type-panel{margin-bottom:1rem}
+    .type-table-wrap{padding:0.55rem 0.75rem;overflow:auto}
+    .type-table{width:100%;border-collapse:collapse;font-size:0.8rem;min-width:460px}
+    .type-table th,.type-table td{padding:0.42rem 0.5rem;border-bottom:1px solid #232a33;white-space:nowrap}
+    .type-table th{color:#8ea0b6;text-align:left;font-weight:600}
+    .type-table td{color:#d7e0ea}
+    .type-table td.num{text-align:right;font-family:monospace;color:#9ecaff}
+    .type-table input[type=checkbox]{accent-color:var(--blue-strong);width:13px;height:13px}
+    .type-sort{background:transparent;border:0;color:inherit;cursor:pointer;font:inherit;padding:0}
+    .type-sort:hover{color:#c7dfff}
+    .scanning{color:var(--warn);font-size:0.9rem;animation:pulse 1s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+    .stats{display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap}
+    .stat{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:0.65rem 1rem;min-width:120px}
+    .stat-val{font-size:1.45rem;font-weight:700;color:var(--blue)}
+    .stat-label{font-size:0.72rem;color:#6f7883;margin-top:0.1rem}
+    .detail{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem;margin-bottom:1rem}
+    .detail h2{font-size:1.1rem;color:var(--blue);margin-bottom:0.5rem;font-family:monospace}
+    .detail-meta{font-size:0.8rem;color:#6f7883;margin-bottom:0.8rem}
+    .detail-files{font-size:0.8rem}
+    .detail-proj{margin-bottom:0.6rem}
+    .detail-proj-name{color:#e6edf3;font-weight:600;margin-bottom:0.2rem}
+    .detail-file{color:#7d8793;padding-left:1rem;margin-bottom:0.12rem;display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap}
+    .detail-file span{color:var(--ok);font-family:monospace}
+    .doc-list{display:flex;flex-direction:column;gap:0.55rem}
+    .doc-card{border:1px solid #283241;background:#101722;border-radius:8px;padding:0.6rem 0.7rem}
+    .doc-head{display:flex;align-items:center;justify-content:space-between;gap:0.7rem;margin-bottom:0.35rem}
+    .doc-src{font-family:monospace;font-size:0.78rem;color:#c8d7e8}
+    .doc-badge{font-size:0.7rem;border:1px solid #35506d;color:#9fc2e8;border-radius:999px;padding:0.05rem 0.45rem}
+    .doc-badge.off{border-color:#4f3d2f;color:#d2a883}
+    .doc-summary{font-size:0.79rem;color:#d7e0ea;margin-bottom:0.35rem}
+    .doc-text{font-size:0.74rem;color:#9aa8b8;background:#0b1017;border:1px solid #212b38;border-radius:6px;padding:0.45rem;white-space:pre-wrap;max-height:220px;overflow:auto}
+    .doc-error{font-size:0.76rem;color:#a97f65}
+    .file-link{color:#9ecaff;text-decoration:none}
+    .file-link:hover{text-decoration:underline;color:#c6ddff}
+    .file-action{font-size:0.72rem;color:#a4b6cb;text-decoration:none;border:1px solid #2a3a4f;border-radius:999px;padding:0.08rem 0.45rem}
+    .file-action:hover{border-color:#4d6a8a;color:#d8e7f8}
+    .panels{display:block}
+    @media(max-width:1260px){
+      .setup-toolbar input[type=text]{min-width:220px}
+      body.has-data .target-list{max-height:46vh}
+      body.no-data .target-list{max-height:none}
+    }
+    .rank-list{overflow:auto;max-height:620px}
+    .rank-item{display:flex;align-items:center;gap:0.6rem;padding:0.45rem 1rem;border-bottom:1px solid #21262d;cursor:pointer;transition:background 0.1s}
+    .rank-item:hover{background:#21262d}
+    .rank-item.selected{background:#1b2b3f;border-left:3px solid var(--blue)}
+    .rank-num{color:#5f6874;font-size:0.75rem;width:22px;text-align:right;flex-shrink:0}
+    .rank-name{flex:1;font-size:0.9rem;color:#e6edf3;font-family:monospace}
+    .rank-bar-wrap{width:84px;flex-shrink:0}
+    .rank-bar{height:6px;background:var(--blue-strong);border-radius:3px}
+    .rank-count{color:var(--blue);font-size:0.8rem;width:36px;text-align:right;flex-shrink:0;font-family:monospace}
+    .empty{color:#6e7884;padding:1.2rem;text-align:center;font-size:0.9rem}
+  </style>
+</head>
+<body class="{{ 'has-data' if data else 'no-data' }}">
+  <h1>🔬 CODEANALYST</h1>
+  <div class="subtitle">Pick folders first, then scan.</div>
+
+  <div class="panel setup-panel">
+    <div class="panel-head">
+      <span>Scan Targets</span>
+      <span class="status" id="setup-status">Select folders and start scan</span>
+    </div>
+    <div class="setup-toolbar">
+      <button class="btn" onclick="selectAllTargets()">Select All</button>
+      <button class="btn" onclick="selectNoneTargets()">Select None</button>
+      <input type="text" id="extra-dir" placeholder="Add folder path (absolute or relative)">
+      <button class="btn" onclick="addTargetDir()">Add Dir</button>
+      <button class="btn primary" onclick="startScan()">Scan</button>
+      {% if scanning %}
+      <span class="scanning">⏳ Scanning...</span>
+      {% endif %}
+    </div>
+    <div id="rescan-hint" class="scan-hint" style="display:none">Please scan again</div>
+    <div class="target-list" id="target-list"></div>
+  </div>
+
+  {% if data %}
+  <div class="panel type-panel">
+    <div class="panel-head">
+      <span>Dateitypen (Wildcard Filter)</span>
+      <span id="filetype-status" style="color:#6f7883;font-size:0.75rem">all active</span>
+    </div>
+    <div class="panel-tools">
+      <button class="btn" onclick="selectAllFileTypes()">All Types</button>
+      <button class="btn" onclick="selectNoneFileTypes()">No Types</button>
+    </div>
+    <div class="type-table-wrap">
+      <table class="type-table">
+        <thead>
+          <tr>
+            <th style="width:38px"></th>
+            <th><button class="type-sort" id="type-sort-name" onclick="setFileTypeSort('name')">Dateityp</button></th>
+            <th style="text-align:right"><button class="type-sort" id="type-sort-files" onclick="setFileTypeSort('files')">Dateien</button></th>
+            <th style="text-align:right"><button class="type-sort" id="type-sort-programs" onclick="setFileTypeSort('programs')">Programs</button></th>
+          </tr>
+        </thead>
+        <tbody id="filetype-list"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Filter entries..." oninput="filterEntries(this.value)">
+    <div id="mode-buttons" style="display:flex;gap:0.45rem;flex-wrap:wrap"></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-val" id="stat-unique">{{ data.global|length }}</div><div class="stat-label" id="stat-unique-label">Unique Programs</div></div>
+    <div class="stat"><div class="stat-val" id="stat-projects">{{ data.total_projects }}</div><div class="stat-label" id="stat-projects-label">Projects Scanned</div></div>
+    <div class="stat"><div class="stat-val" id="stat-total">{{ data.global.values()|sum }}</div><div class="stat-label" id="stat-total-label">Total Mentions</div></div>
+    <div class="stat"><div class="stat-val" id="stat-max">{{ data.global.values()|max if data.global else 0 }}</div><div class="stat-label" id="stat-max-label">Max Single Program</div></div>
+  </div>
+
+  <div id="detail-panel" style="display:none" class="detail">
+    <h2 id="detail-name"></h2>
+    <div class="detail-meta" id="detail-meta"></div>
+    <div class="detail-files" id="detail-files"></div>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-head">
+        <span id="rank-title">Global Ranking · Programs</span>
+        <span id="rank-count-label" style="color:#6f7883;font-size:0.75rem">{{ data.global|length }} programs</span>
+      </div>
+      <div class="panel-tools">
+        <button class="btn active" id="btn-sort-freq" onclick="setSortMode('freq')">Sort: Haeufigkeit</button>
+        <button class="btn" id="btn-sort-name" onclick="setSortMode('name')">Sort: Name</button>
+      </div>
+      <div class="rank-list" id="rank-list"></div>
+    </div>
+  </div>
+
+  <div id="detail-docs-panel" style="display:none" class="detail">
+    <h2>Command Docs</h2>
+    <div class="detail-meta" id="detail-docs-meta"></div>
+    <div class="doc-list" id="detail-docs-list"></div>
+  </div>
+  {% else %}
+  <div class="empty" id="empty-state">
+    {% if scanning %}
+    <span class="scanning">⏳ Scan running...</span>
+    {% else %}
+    Select folders above, then click <strong>Scan</strong>.
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <script>
+    const DATA = {{ data | tojson if data else 'null' }};
+    const INITIAL_SCANNING = {{ 'true' if scanning else 'false' }};
+    const INITIAL_SETUP = {{ setup | tojson }};
+    const INITIAL_ERROR = {{ error | tojson }};
+
+    let scanning = INITIAL_SCANNING;
+    let projectOptions = [...(INITIAL_SETUP.projects || [])];
+    let selectedTargets = new Set(INITIAL_SETUP.selected_paths || []);
+    let excludedTargets = new Set(INITIAL_SETUP.excluded_paths || []);
+    let extraTargets = new Set(INITIAL_SETUP.extra_paths || []);
+    let expandedFolders = new Set();
+    let loadingFolders = new Set();
+    let childrenByPath = new Map();
+    let knownEmptyFolders = new Set();
+    let availableFileTypes = DATA ? Object.entries(DATA.file_types_global || {}) : [];
+    let selectedFileTypes = new Set(
+      (INITIAL_SETUP.selected_file_types && INITIAL_SETUP.selected_file_types.length)
+        ? INITIAL_SETUP.selected_file_types
+        : (DATA ? (DATA.selected_file_types || []) : [])
+    );
+    let filteredDataCache = null;
+    let filteredDataCacheKey = '';
+    let fileTypeSortKey = 'files';
+    let fileTypeSortDir = 'desc';
+    const UI_MODES_RAW = (INITIAL_SETUP.ui && INITIAL_SETUP.ui.modes) || [];
+    const MODE_FALLBACK = [
+      {id: 'bash_shell', label: 'BASH_SHELL', file_types: ['*.sh', '*.bash', '*.zsh', 'Dockerfile', 'Makefile', 'Procfile']},
+      {id: 'python', label: 'PYTHON', file_types: ['*.py']},
+      {id: 'js_ts_npm', label: 'JS_TS_NPM', file_types: ['*.js', '*.ts', '*.mjs', '*.cjs', '*.jsx', '*.tsx', '*.mts', '*.cts', '*.json']},
+    ];
+    const MODE_DEFS = (UI_MODES_RAW.length ? UI_MODES_RAW : MODE_FALLBACK)
+      .map((mode) => ({
+        id: String(mode.id || '').trim(),
+        label: String(mode.label || mode.id || '').trim() || 'MODE',
+        file_types: Array.isArray(mode.file_types) ? mode.file_types.map(v => String(v || '').trim()).filter(Boolean) : [],
+        tokens: Array.isArray(mode.tokens) ? mode.tokens.map(v => String(v || '').trim().toLowerCase()).filter(Boolean) : [],
+      }))
+      .filter(mode => mode.id);
+    const MODE_TYPE_KEYS = Object.fromEntries(
+      MODE_DEFS.map((mode) => [
+        mode.id,
+        new Set(
+          mode.file_types.flatMap((v) => {
+            const s = String(v || '').trim();
+            if (!s) return [];
+            return [s, s.toLowerCase()];
+          })
+        ),
+      ])
+    );
+    const MODE_TOKEN_KEYS = Object.fromEntries(
+      MODE_DEFS.map((mode) => [mode.id, new Set(mode.tokens)])
+    );
+
+    if (availableFileTypes.length > 0 && selectedFileTypes.size === 0) {
+      availableFileTypes.forEach(([kind]) => selectedFileTypes.add(kind));
+    }
+
+    if (selectedTargets.size === 0) {
+      projectOptions.forEach(item => selectedTargets.add(item.path));
+    }
+
+    function escHtml(v) {
+      return String(v)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function escJs(v) {
+      return String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    }
+
+    function fileUrl(projectPath, filePath, mode = 'view') {
+      const params = new URLSearchParams({
+        project: projectPath,
+        file: filePath,
+        mode,
+      });
+      return `/api/file?${params.toString()}`;
+    }
+
+    function mapToSortedObject(mapObj) {
+      return Object.fromEntries(
+        Object.entries(mapObj).sort((a, b) => (b[1] - a[1]) || a[0].localeCompare(b[0]))
+      );
+    }
+
+    function fileTypeFromPath(filePath) {
+      const normalized = String(filePath || '').replace(/\\/g, '/');
+      const base = normalized.split('/').pop() || normalized;
+      if (['Dockerfile', 'Makefile', 'Procfile'].includes(base)) return base;
+      const dot = base.lastIndexOf('.');
+      if (dot > 0) return `*${base.slice(dot).toLowerCase()}`;
+      return '(no-ext)';
+    }
+
+    function fileTypeAllowed(filePath) {
+      if (selectedFileTypes.size === 0) return false;
+      return selectedFileTypes.has(fileTypeFromPath(filePath));
+    }
+
+    function normPath(path) {
+      let p = String(path || '').replace(/\\/g, '/').replace(/\/+/g, '/');
+      if (p.length > 1) p = p.replace(/\/+$/, '');
+      return p;
+    }
+
+    function pathIsWithin(path, root) {
+      const p = normPath(path);
+      const r = normPath(root);
+      return p === r || p.startsWith(`${r}/`);
+    }
+
+    function filterFileMapBySelection(fileMap, projectPath) {
+      const out = {};
+      const projectRoot = normPath(projectPath);
+      const selectedScopes = [...selectedTargets]
+        .map(normPath)
+        .filter((p) => pathIsWithin(p, projectRoot));
+      if (selectedScopes.length === 0) return out;
+
+      const excludedScopes = [...excludedTargets]
+        .map(normPath)
+        .filter((p) => pathIsWithin(p, projectRoot));
+      const hasProjectRoot = selectedScopes.some((p) => p === projectRoot);
+
+      Object.entries(fileMap || {}).forEach(([file, counts]) => {
+        const rel = String(file || '').replace(/^\.\//, '');
+        const abs = normPath(`${projectRoot}/${rel}`);
+        const selected = hasProjectRoot || selectedScopes.some((scope) => pathIsWithin(abs, scope));
+        if (!selected) return;
+        const excluded = excludedScopes.some((scope) => pathIsWithin(abs, scope));
+        if (excluded) return;
+        out[file] = counts;
+      });
+      return out;
+    }
+
+    function applyRuntimeFilters(fileMap, projectPath) {
+      return filterFileMapByType(filterFileMapBySelection(fileMap, projectPath));
+    }
+
+    function filterFileMapByType(fileMap) {
+      const out = {};
+      Object.entries(fileMap || {}).forEach(([file, counts]) => {
+        if (fileTypeAllowed(file)) {
+          out[file] = counts;
+        }
+      });
+      return out;
+    }
+
+    function sumTokenCounts(fileMap) {
+      const totals = {};
+      Object.values(fileMap || {}).forEach((counts) => {
+        Object.entries(counts || {}).forEach(([name, cnt]) => {
+          totals[name] = (totals[name] || 0) + cnt;
+        });
+      });
+      return totals;
+    }
+
+    function mergeTokenCounts(a, b) {
+      const merged = {...(a || {})};
+      Object.entries(b || {}).forEach(([name, cnt]) => {
+        merged[name] = (merged[name] || 0) + cnt;
+      });
+      return merged;
+    }
+
+    function mergeFileMaps(a, b) {
+      const out = {};
+      const files = new Set([
+        ...Object.keys(a || {}),
+        ...Object.keys(b || {}),
+      ]);
+      files.forEach((file) => {
+        out[file] = mergeTokenCounts((a || {})[file], (b || {})[file]);
+      });
+      return out;
+    }
+
+    function modeAllowsFile(modeKey, filePath) {
+      const allowed = MODE_TYPE_KEYS[modeKey];
+      if (!allowed || !allowed.size) return false;
+      const kind = fileTypeFromPath(filePath);
+      const kindLow = kind.toLowerCase();
+      if (allowed.has(kind) || allowed.has(kindLow)) return true;
+      return false;
+    }
+
+    function pickModeFiles(fileMap, modeKey) {
+      const out = {};
+      Object.entries(fileMap || {}).forEach(([file, counts]) => {
+        if (modeAllowsFile(modeKey, file)) {
+          out[file] = counts;
+        }
+      });
+      return out;
+    }
+
+    function filterCountsToModeTokens(fileMap, modeKey) {
+      const tokenSet = MODE_TOKEN_KEYS[modeKey];
+      if (!tokenSet || tokenSet.size === 0) return fileMap || {};
+      const out = {};
+      Object.entries(fileMap || {}).forEach(([file, counts]) => {
+        const filtered = {};
+        Object.entries(counts || {}).forEach(([name, cnt]) => {
+          if (tokenSet.has(String(name || '').toLowerCase())) {
+            filtered[name] = cnt;
+          }
+        });
+        if (Object.keys(filtered).length > 0) {
+          out[file] = filtered;
+        }
+      });
+      return out;
+    }
+
+    function invalidateFilteredData() {
+      filteredDataCache = null;
+      filteredDataCacheKey = '';
+    }
+
+    function activeData() {
+      if (!DATA) return null;
+      const key = [
+        `types:${[...selectedFileTypes].sort().join('|')}`,
+        `sel:${[...selectedTargets].map(normPath).sort().join('|')}`,
+        `ex:${[...excludedTargets].map(normPath).sort().join('|')}`,
+      ].join('||');
+      if (filteredDataCache && filteredDataCacheKey === key) return filteredDataCache;
+
+      const projects = (DATA.projects || []).map((proj) => {
+        const files = applyRuntimeFilters(proj.files || {}, proj.path);
+        const blacklistFiles = applyRuntimeFilters(proj.blacklist_files || {}, proj.path);
+        const programs = mapToSortedObject(sumTokenCounts(files));
+        const blacklist = mapToSortedObject(sumTokenCounts(blacklistFiles));
+        const combinedFiles = mergeFileMaps(files, blacklistFiles);
+        const backendModeFiles = proj.mode_files || {};
+        const modeMaps = {};
+        MODE_DEFS.forEach((mode) => {
+          let modeFiles = {};
+          let hasBackendModeFiles = false;
+          if (backendModeFiles && backendModeFiles[mode.id]) {
+            modeFiles = applyRuntimeFilters(backendModeFiles[mode.id], proj.path);
+            hasBackendModeFiles = true;
+          } else {
+            modeFiles = pickModeFiles(combinedFiles, mode.id);
+          }
+          if (!hasBackendModeFiles) {
+            modeFiles = filterCountsToModeTokens(modeFiles, mode.id);
+          }
+          modeMaps[mode.id] = {
+            files: modeFiles,
+            totals: mapToSortedObject(sumTokenCounts(modeFiles)),
+          };
+        });
+        return {
+          ...proj,
+          files,
+          blacklist_files: blacklistFiles,
+          programs,
+          blacklist,
+          mode_maps: modeMaps,
+        };
+      });
+
+      const globalPrograms = {};
+      const globalSyntax = {};
+      const modeGlobals = Object.fromEntries(MODE_DEFS.map((mode) => [mode.id, {}]));
+      projects.forEach((proj) => {
+        Object.entries(proj.programs || {}).forEach(([name, cnt]) => {
+          globalPrograms[name] = (globalPrograms[name] || 0) + cnt;
+        });
+        Object.entries(proj.blacklist || {}).forEach(([name, cnt]) => {
+          globalSyntax[name] = (globalSyntax[name] || 0) + cnt;
+        });
+        MODE_DEFS.forEach((mode) => {
+          const src = ((proj.mode_maps || {})[mode.id] || {}).totals || {};
+          const dst = modeGlobals[mode.id] || {};
+          Object.entries(src).forEach(([name, cnt]) => {
+            dst[name] = (dst[name] || 0) + cnt;
+          });
+          modeGlobals[mode.id] = dst;
+        });
+      });
+
+      filteredDataCache = {
+        ...DATA,
+        projects,
+        global: mapToSortedObject(globalPrograms),
+        blacklist_global: mapToSortedObject(globalSyntax),
+        mode_globals: Object.fromEntries(
+          Object.entries(modeGlobals).map(([modeId, counts]) => [
+            modeId,
+            mapToSortedObject(counts),
+          ])
+        ),
+      };
+      filteredDataCacheKey = key;
+      return filteredDataCache;
+    }
+
+    function programsPerFileType() {
+      const totals = {};
+      if (!DATA) return totals;
+      (DATA.projects || []).forEach((proj) => {
+        const files = applyRuntimeFilters(proj.files || {}, proj.path);
+        Object.entries(files).forEach(([file, counts]) => {
+          const kind = fileTypeFromPath(file);
+          const cnt = Object.values(counts || {}).reduce((acc, v) => acc + Number(v || 0), 0);
+          totals[kind] = (totals[kind] || 0) + cnt;
+        });
+      });
+      return totals;
+    }
+
+    function sortedFileTypeRows() {
+      const fileCounts = Object.fromEntries(availableFileTypes);
+      const programCounts = programsPerFileType();
+      const allKinds = new Set([
+        ...Object.keys(fileCounts || {}),
+        ...Object.keys(programCounts || {}),
+      ]);
+      const rows = [...allKinds].map((kind) => ({
+        kind,
+        files: fileCounts[kind] || 0,
+        programs: programCounts[kind] || 0,
+      }));
+
+      rows.sort((a, b) => {
+        if (fileTypeSortKey === 'name') {
+          const cmp = a.kind.localeCompare(b.kind);
+          return fileTypeSortDir === 'asc' ? cmp : -cmp;
+        }
+        if (fileTypeSortKey === 'programs') {
+          const cmp = (a.programs - b.programs) || a.kind.localeCompare(b.kind);
+          return fileTypeSortDir === 'asc' ? cmp : -cmp;
+        }
+        const cmp = (a.files - b.files) || a.kind.localeCompare(b.kind);
+        return fileTypeSortDir === 'asc' ? cmp : -cmp;
+      });
+
+      return rows;
+    }
+
+    function sortIndicator(key) {
+      if (fileTypeSortKey !== key) return '';
+      return fileTypeSortDir === 'asc' ? ' ↑' : ' ↓';
+    }
+
+    function updateFileTypeSortButtons() {
+      const nameBtn = document.getElementById('type-sort-name');
+      const filesBtn = document.getElementById('type-sort-files');
+      const progBtn = document.getElementById('type-sort-programs');
+      if (nameBtn) nameBtn.textContent = `Dateityp${sortIndicator('name')}`;
+      if (filesBtn) filesBtn.textContent = `Dateien${sortIndicator('files')}`;
+      if (progBtn) progBtn.textContent = `Programs${sortIndicator('programs')}`;
+    }
+
+    function setFileTypeSort(key) {
+      if (!['name', 'files', 'programs'].includes(key)) return;
+      if (fileTypeSortKey === key) {
+        fileTypeSortDir = fileTypeSortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        fileTypeSortKey = key;
+        fileTypeSortDir = key === 'name' ? 'asc' : 'desc';
+      }
+      renderFileTypes();
+    }
+
+    function updateFileTypeStatus() {
+      const status = document.getElementById('filetype-status');
+      if (!status) return;
+      const total = availableFileTypes.length;
+      if (total === 0) {
+        status.textContent = 'no file types detected';
+        return;
+      }
+      status.textContent = `${selectedFileTypes.size}/${total} active`;
+    }
+
+    function renderFileTypes() {
+      const wrap = document.getElementById('filetype-list');
+      if (!wrap) return;
+      const rows = sortedFileTypeRows();
+      if (!rows.length) {
+        wrap.innerHTML = '<tr><td colspan="4" class="empty">No file types detected for this scan.</td></tr>';
+        updateFileTypeStatus();
+        updateFileTypeSortButtons();
+        return;
+      }
+      wrap.innerHTML = rows.map(({kind, files, programs}) => {
+        const checked = selectedFileTypes.has(kind) ? 'checked' : '';
+        return `<tr>
+          <td><input type="checkbox" ${checked} onchange="toggleFileType('${escJs(kind)}', this.checked)"></td>
+          <td>${escHtml(kind)}</td>
+          <td class="num">${files}</td>
+          <td class="num">${programs}</td>
+        </tr>`;
+      }).join('');
+      updateFileTypeStatus();
+      updateFileTypeSortButtons();
+    }
+
+    function refreshAfterRuntimeFilterChange() {
+      if (!DATA) return;
+      invalidateFilteredData();
+      renderModeButtons();
+      renderFileTypes();
+      renderStats();
+      renderRankList();
+      if (selectedEntry && !activeGlobal()[selectedEntry]) {
+        selectedEntry = null;
+        document.getElementById('detail-panel').style.display = 'none';
+        hideCommandDocs();
+      } else if (selectedEntry) {
+        selectEntry(selectedEntry);
+      }
+    }
+
+    function toggleFileType(kind, checked) {
+      if (checked) selectedFileTypes.add(kind);
+      else selectedFileTypes.delete(kind);
+      updateFileTypeStatus();
+      refreshAfterRuntimeFilterChange();
+    }
+
+    function selectAllFileTypes() {
+      availableFileTypes.forEach(([kind]) => selectedFileTypes.add(kind));
+      renderFileTypes();
+      refreshAfterRuntimeFilterChange();
+    }
+
+    function selectNoneFileTypes() {
+      selectedFileTypes.clear();
+      renderFileTypes();
+      refreshAfterRuntimeFilterChange();
+    }
+
+    function setSetupStatus(text, cls = '') {
+      const el = document.getElementById('setup-status');
+      if (!el) return;
+      el.textContent = text;
+      el.className = `status ${cls}`.trim();
+    }
+
+    function sortFolderEntries(entries) {
+      return [...entries].sort((a, b) =>
+        (a.name || '').localeCompare(b.name || '') || (a.path || '').localeCompare(b.path || '')
+      );
+    }
+
+    function knownPaths() {
+      const paths = new Set();
+      const stack = [...projectOptions];
+      while (stack.length) {
+        const node = stack.pop();
+        if (!node || !node.path || paths.has(node.path)) continue;
+        paths.add(node.path);
+        const children = childrenByPath.get(node.path) || [];
+        children.forEach(child => stack.push(child));
+      }
+      return [...paths];
+    }
+
+    function loadedDescendantPaths(path) {
+      const descendants = [];
+      const seen = new Set();
+      const stack = [path];
+      while (stack.length) {
+        const current = stack.pop();
+        const children = childrenByPath.get(current) || [];
+        children.forEach(child => {
+          if (!child.path || seen.has(child.path)) return;
+          seen.add(child.path);
+          descendants.push(child.path);
+          stack.push(child.path);
+        });
+      }
+      return descendants;
+    }
+
+    function applySelectionCascade(path, checked) {
+      if (checked) selectedTargets.add(path);
+      else selectedTargets.delete(path);
+      loadedDescendantPaths(path).forEach(descPath => {
+        if (checked) selectedTargets.add(descPath);
+        else selectedTargets.delete(descPath);
+      });
+    }
+
+    function clearExcludedForPath(path) {
+      excludedTargets.delete(path);
+      loadedDescendantPaths(path).forEach(descPath => excludedTargets.delete(descPath));
+    }
+
+    function markExcludedForPath(path) {
+      excludedTargets.add(path);
+      loadedDescendantPaths(path).forEach(descPath => excludedTargets.add(descPath));
+    }
+
+    async function ensureChildrenLoaded(path) {
+      if (childrenByPath.has(path) || knownEmptyFolders.has(path) || loadingFolders.has(path)) {
+        return;
+      }
+      loadingFolders.add(path);
+      renderTargetList();
+      try {
+        const r = await fetch(`/api/tree?path=${encodeURIComponent(path)}`);
+        const payload = await r.json();
+        if (!r.ok) {
+          setSetupStatus(payload.error || `Could not load: ${path}`, 'warn');
+          return;
+        }
+        const children = sortFolderEntries(payload.children || []);
+        childrenByPath.set(path, children);
+        if (selectedTargets.has(path)) {
+          children.forEach(child => {
+            if (excludedTargets.has(child.path)) {
+              selectedTargets.delete(child.path);
+              return;
+            }
+            selectedTargets.add(child.path);
+          });
+          if (DATA) {
+            const uncovered = children.some(child => !wasIncludedInLastScan(child.path));
+            if (uncovered) showRescanHint();
+          }
+        }
+        if (children.length === 0) {
+          knownEmptyFolders.add(path);
+        }
+        refreshAfterRuntimeFilterChange();
+      } catch (_) {
+        setSetupStatus(`Could not load subfolders for ${path}`, 'warn');
+      } finally {
+        loadingFolders.delete(path);
+        renderTargetList();
+      }
+    }
+
+    async function toggleFolder(path) {
+      if (expandedFolders.has(path)) {
+        expandedFolders.delete(path);
+        renderTargetList();
+        return;
+      }
+      expandedFolders.add(path);
+      renderTargetList();
+      await ensureChildrenLoaded(path);
+    }
+
+    function renderFolderNode(node, depth) {
+      const path = node.path;
+      const expanded = expandedFolders.has(path);
+      const loading = loadingFolders.has(path);
+      const children = childrenByPath.get(path) || [];
+      const hasLoadedNode = childrenByPath.has(path);
+      const hasChildren =
+        node.has_children === true ||
+        children.length > 0 ||
+        !knownEmptyFolders.has(path) ||
+        hasLoadedNode ||
+        expanded;
+      const pad = 0.5 + depth * 1.05;
+      const checked = selectedTargets.has(path) ? 'checked' : '';
+      const source = node.source === 'extra' ? 'extra' : (node.source === 'child' ? 'subdir' : 'config');
+      const toggleButton = hasChildren
+        ? `<button class="tree-toggle ${loading ? 'loading' : ''}" onclick="toggleFolder('${escJs(path)}')">${loading ? '…' : (expanded ? '▾' : '▸')}</button>`
+        : `<span class="tree-toggle empty">·</span>`;
+
+      let html = `<div class="tree-row" style="padding-left:${pad}rem">
+        ${toggleButton}
+        <label class="target-item" style="padding:0;border:0;background:transparent;flex:1">
+          <input type="checkbox" data-path="${escHtml(path)}" ${checked} onchange="toggleTarget('${escJs(path)}', this.checked)">
+          <div class="target-meta">
+            <span class="target-name">${escHtml(node.name || path)}</span>
+            <span class="badge">${source}</span>
+            <span class="target-path">${escHtml(path)}</span>
+          </div>
+        </label>
+      </div>`;
+
+      if (expanded && children.length > 0) {
+        html += children.map(child => renderFolderNode(child, depth + 1)).join('');
+      }
+      return html;
+    }
+
+    function renderTargetList() {
+      const listEl = document.getElementById('target-list');
+      if (!listEl) return;
+      const roots = sortFolderEntries(projectOptions);
+
+      if (!roots.length) {
+        listEl.innerHTML = '<div class="empty">No folders found from config.</div>';
+        return;
+      }
+
+      listEl.innerHTML = roots.map(root => renderFolderNode(root, 0)).join('');
+    }
+
+    function toggleTarget(path, checked) {
+      const needRescanHint = shouldPromptRescan(path, checked);
+      if (checked) {
+        applySelectionCascade(path, true);
+        clearExcludedForPath(path);
+      } else {
+        applySelectionCascade(path, false);
+        markExcludedForPath(path);
+      }
+      renderTargetList();
+      refreshAfterRuntimeFilterChange();
+      if (needRescanHint) showRescanHint();
+      setSetupStatus(`${selectedTargets.size} folders selected (staged) · click Scan`, 'ok');
+    }
+
+    function selectAllTargets() {
+      knownPaths().forEach(path => selectedTargets.add(path));
+      excludedTargets.clear();
+      renderTargetList();
+      refreshAfterRuntimeFilterChange();
+      if (DATA) {
+        const needRescan = knownPaths().some(path => !wasIncludedInLastScan(path));
+        if (needRescan) showRescanHint();
+      }
+      setSetupStatus(`${selectedTargets.size} folders selected (staged) · click Scan`, 'ok');
+    }
+
+    function selectNoneTargets() {
+      selectedTargets.clear();
+      excludedTargets.clear();
+      renderTargetList();
+      refreshAfterRuntimeFilterChange();
+      setSetupStatus('No folders selected (staged) · click Scan after selection', 'warn');
+    }
+
+    function addTargetDir() {
+      const input = document.getElementById('extra-dir');
+      if (!input) return;
+      const raw = (input.value || '').trim();
+      if (!raw) {
+        setSetupStatus('Enter a directory path first', 'warn');
+        return;
+      }
+
+      const existing = projectOptions.find(item => item.path === raw);
+      if (existing) {
+        selectedTargets.add(existing.path);
+        excludedTargets.delete(existing.path);
+        input.value = '';
+        renderTargetList();
+        refreshAfterRuntimeFilterChange();
+        if (shouldPromptRescan(existing.path, true)) showRescanHint();
+        setSetupStatus(`Added existing: ${existing.path} (staged)`, 'ok');
+        return;
+      }
+
+      const name = raw.split('/').filter(Boolean).slice(-1)[0] || raw;
+      projectOptions.push({name, path: raw, source: 'extra', has_children: true});
+      selectedTargets.add(raw);
+      excludedTargets.delete(raw);
+      extraTargets.add(raw);
+      input.value = '';
+      renderTargetList();
+      refreshAfterRuntimeFilterChange();
+      if (DATA) showRescanHint();
+      setSetupStatus(`Added extra dir: ${raw} (staged)`, 'ok');
+    }
+
+    async function startScan() {
+      if (selectedTargets.size === 0) {
+        setSetupStatus('Select at least one folder before starting', 'warn');
+        return;
+      }
+      if (DATA && availableFileTypes.length > 0 && selectedFileTypes.size === 0) {
+        setSetupStatus('Select at least one file type before scan', 'warn');
+        return;
+      }
+
+      setSetupStatus('Starting scan...', 'warn');
+      hideRescanHint();
+      try {
+        const res = await fetch('/api/scan/start', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            selected_paths: [...selectedTargets],
+            excluded_paths: [...excludedTargets],
+            selected_file_types: [...selectedFileTypes],
+            extra_paths: [...extraTargets],
+          }),
+        });
+        const payload = await res.json();
+        if (!res.ok) {
+          setSetupStatus(payload.error || 'Failed to start scan', 'warn');
+          return;
+        }
+        setSetupStatus('Scan started. Loading...', 'ok');
+        window.location.assign(`${window.location.pathname}?scan=${Date.now()}`);
+      } catch (err) {
+        setSetupStatus(`Start failed: ${err.message}`, 'warn');
+      }
+    }
+
+    const MODE = {
+      programs: {
+        title: 'Programs',
+        nounPlural: 'programs',
+        detailMetric: 'total mentions',
+        maxLabel: 'Max Single Program',
+      },
+    };
+    MODE_DEFS.forEach((mode) => {
+      const isPackagesMode = mode.id === 'packages' || mode.label.toLowerCase() === 'packages';
+      MODE[mode.id] = {
+        title: mode.label,
+        nounPlural: isPackagesMode ? 'packages' : `${mode.label.toLowerCase()} entries`,
+        detailMetric: isPackagesMode ? 'total package mentions' : 'total hits',
+        maxLabel: isPackagesMode ? 'Max Package' : `Max ${mode.label} Entry`,
+      };
+    });
+
+    let currentMode = 'programs';
+    let sortMode = 'freq';
+    let selectedEntry = null;
+    let searchQuery = '';
+    const commandDocsCache = new Map();
+    let docsRequestSeq = 0;
+    let rescanHintTimer = null;
+
+    function cfg() {
+      return MODE[currentMode];
+    }
+
+    function showRescanHint() {
+      const el = document.getElementById('rescan-hint');
+      if (!el) return;
+      el.style.display = 'block';
+      if (rescanHintTimer) clearTimeout(rescanHintTimer);
+      rescanHintTimer = setTimeout(() => {
+        el.style.display = 'none';
+      }, 2200);
+    }
+
+    function hideRescanHint() {
+      const el = document.getElementById('rescan-hint');
+      if (!el) return;
+      el.style.display = 'none';
+      if (rescanHintTimer) {
+        clearTimeout(rescanHintTimer);
+        rescanHintTimer = null;
+      }
+    }
+
+    function wasIncludedInLastScan(path) {
+      if (!DATA) return false;
+      const p = normPath(path);
+      const selectedRoots = (DATA.selected_projects || []).map(normPath);
+      const excludedRoots = (DATA.excluded_projects || []).map(normPath);
+      const selectedHit = selectedRoots.some((root) => pathIsWithin(p, root));
+      if (!selectedHit) return false;
+      const excludedHit = excludedRoots.some((root) => pathIsWithin(p, root));
+      return !excludedHit;
+    }
+
+    function shouldPromptRescan(path, checked) {
+      if (!DATA || !checked) return false;
+      return !wasIncludedInLastScan(path);
+    }
+
+    function activeGlobal() {
+      const data = activeData();
+      if (!data) return {};
+      if (currentMode === 'programs') return data.global || {};
+      return ((data.mode_globals || {})[currentMode]) || {};
+    }
+
+    function projectTotalsForMode(proj, modeId) {
+      if (modeId === 'programs') return proj.programs || {};
+      return (((proj.mode_maps || {})[modeId]) || {}).totals || {};
+    }
+
+    function projectFilesForMode(proj, modeId) {
+      if (modeId === 'programs') return proj.files || {};
+      return (((proj.mode_maps || {})[modeId]) || {}).files || {};
+    }
+
+    function visibleModes() {
+      const data = activeData();
+      const base = [{id: 'programs', label: 'Programs'}];
+      if (!data) return base;
+      const dynamic = MODE_DEFS.filter((mode) =>
+        Object.keys(((data.mode_globals || {})[mode.id]) || {}).length > 0
+      );
+      return [...base, ...dynamic];
+    }
+
+    function renderModeButtons() {
+      const wrap = document.getElementById('mode-buttons');
+      if (!wrap) return;
+      const modes = visibleModes();
+      const visibleIds = new Set(modes.map((mode) => mode.id));
+      if (!visibleIds.has(currentMode)) {
+        currentMode = 'programs';
+        selectedEntry = null;
+        const detail = document.getElementById('detail-panel');
+        if (detail) detail.style.display = 'none';
+        hideCommandDocs();
+      }
+      wrap.innerHTML = modes.map((mode) => {
+        const active = currentMode === mode.id ? ' active' : '';
+        return `<button class="btn${active}" data-mode="${escHtml(mode.id)}" onclick="setView('${escJs(mode.id)}')">${escHtml(mode.label)}</button>`;
+      }).join('');
+    }
+
+    function sortedEntries(mapObj) {
+      const entries = Object.entries(mapObj);
+      if (sortMode === 'name') {
+        return entries.sort((a, b) => a[0].localeCompare(b[0]) || (b[1] - a[1]));
+      }
+      return entries.sort((a, b) => (b[1] - a[1]) || a[0].localeCompare(b[0]));
+    }
+
+    function setSortMode(mode) {
+      if (!['freq', 'name'].includes(mode)) return;
+      sortMode = mode;
+      document.getElementById('btn-sort-freq').classList.toggle('active', mode === 'freq');
+      document.getElementById('btn-sort-name').classList.toggle('active', mode === 'name');
+      renderRankList();
+      if (selectedEntry) {
+        selectEntry(selectedEntry);
+      }
+    }
+
+    function renderStats() {
+      const data = activeData();
+      if (!data) return;
+      const c = cfg();
+      const globalMap = activeGlobal();
+      const values = Object.values(globalMap);
+      const total = values.reduce((acc, v) => acc + v, 0);
+      const max = values.length ? Math.max(...values) : 0;
+      const projectsWithMatches = data.projects.filter(
+        p => Object.keys(projectTotalsForMode(p, currentMode) || {}).length > 0
+      ).length;
+
+      document.getElementById('stat-unique').textContent = values.length;
+      document.getElementById('stat-projects').textContent = projectsWithMatches;
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-max').textContent = max;
+      document.getElementById('stat-unique-label').textContent = `Unique ${c.nounPlural}`;
+      document.getElementById('stat-projects-label').textContent = `Projects With ${c.nounPlural}`;
+      document.getElementById('stat-total-label').textContent = c.detailMetric;
+      document.getElementById('stat-max-label').textContent = c.maxLabel;
+      document.getElementById('rank-title').textContent = `Global Ranking · ${c.title}`;
+      document.getElementById('rank-count-label').textContent = `${values.length} ${c.nounPlural}`;
+    }
+
+    function renderRankList() {
+      const entries = sortedEntries(activeGlobal()).filter(([name]) =>
+        name.toLowerCase().includes(searchQuery)
+      );
+      const maxCount = entries.length ? Math.max(...entries.map(([, count]) => count)) : 1;
+      const html = entries.map(([name, count], idx) => {
+        const width = Math.max(2, Math.round((count / maxCount) * 100));
+        const selected = selectedEntry === name ? ' selected' : '';
+        return `<div class="rank-item${selected}" data-prog="${escHtml(name)}" onclick="selectEntry('${escJs(name)}')">
+          <span class="rank-num">${idx + 1}</span>
+          <span class="rank-name">${escHtml(name)}</span>
+          <div class="rank-bar-wrap"><div class="rank-bar" style="width:${width}%"></div></div>
+          <span class="rank-count">${count}</span>
+        </div>`;
+      }).join('');
+
+      document.getElementById('rank-list').innerHTML =
+        html || `<div class="empty">No ${cfg().nounPlural} for this filter.</div>`;
+    }
+
+    function hideCommandDocs() {
+      const panel = document.getElementById('detail-docs-panel');
+      if (panel) panel.style.display = 'none';
+    }
+
+    function renderCommandDocsLoading(name) {
+      const panel = document.getElementById('detail-docs-panel');
+      if (!panel) return;
+      document.getElementById('detail-docs-meta').textContent = `Looking up "${name}" in tldr...`;
+      document.getElementById('detail-docs-list').innerHTML = '<div class="empty">Loading command sources...</div>';
+      panel.style.display = 'block';
+    }
+
+    function renderCommandDocs(name, payload) {
+      const panel = document.getElementById('detail-docs-panel');
+      if (!panel) return;
+      const sources = Array.isArray(payload.sources) ? payload.sources : [];
+      const found = sources.filter(item => item && item.found);
+      document.getElementById('detail-docs-meta').textContent =
+        `${found.length}/${sources.length} sources found for "${name}"`;
+
+      const html = sources.map((item) => {
+        const src = String((item && item.source) || 'source');
+        const ok = Boolean(item && item.found);
+        const badge = ok ? 'found' : 'no match';
+        const summary = ok ? escHtml(String(item.summary || '')) : '';
+        const text = ok ? escHtml(String(item.text || '')) : '';
+        const error = !ok && item && item.error ? escHtml(String(item.error)) : 'No local entry for this command.';
+        return `<div class="doc-card">
+          <div class="doc-head">
+            <span class="doc-src">${escHtml(src)}</span>
+            <span class="doc-badge${ok ? '' : ' off'}">${badge}</span>
+          </div>
+          ${ok && summary ? `<div class="doc-summary">${summary}</div>` : ''}
+          ${ok && text ? `<div class="doc-text">${text}</div>` : `<div class="doc-error">${error}</div>`}
+        </div>`;
+      }).join('');
+
+      document.getElementById('detail-docs-list').innerHTML =
+        html || '<div class="empty">No source data available.</div>';
+      panel.style.display = 'block';
+    }
+
+    async function loadCommandDocs(name) {
+      const key = String(name || '').trim().toLowerCase();
+      if (!key) {
+        hideCommandDocs();
+        return;
+      }
+      if (commandDocsCache.has(key)) {
+        renderCommandDocs(name, commandDocsCache.get(key));
+        return;
+      }
+
+      renderCommandDocsLoading(name);
+      const reqId = ++docsRequestSeq;
+      try {
+        const r = await fetch(`/api/command-info?cmd=${encodeURIComponent(name)}`);
+        const payload = await r.json();
+        if (reqId !== docsRequestSeq || selectedEntry !== name) return;
+        if (!r.ok) {
+          renderCommandDocs(name, {sources: [{source: 'api', found: false, error: payload.error || 'Lookup failed'}]});
+          return;
+        }
+        commandDocsCache.set(key, payload);
+        renderCommandDocs(name, payload);
+      } catch (err) {
+        if (reqId !== docsRequestSeq || selectedEntry !== name) return;
+        renderCommandDocs(name, {sources: [{source: 'api', found: false, error: err.message || 'Lookup failed'}]});
+      }
+    }
+
+    function selectEntry(name) {
+      selectedEntry = name;
+      document.querySelectorAll('.rank-item').forEach(el => {
+        el.classList.toggle('selected', el.dataset.prog === name);
+      });
+
+      if (!DATA) return;
+      const data = activeData();
+      if (!data) return;
+      const c = cfg();
+      const total = (activeGlobal() || {})[name] || 0;
+      const projectCount = data.projects.filter(p => (projectTotalsForMode(p, currentMode) || {})[name]).length;
+
+      document.getElementById('detail-name').textContent = name;
+      document.getElementById('detail-meta').textContent =
+        `${total} ${c.detailMetric} across ${projectCount} projects`;
+
+      let html = '';
+      data.projects.forEach(proj => {
+        const projectTotals = projectTotalsForMode(proj, currentMode) || {};
+        const projCount = projectTotals[name];
+        if (!projCount) return;
+        html += `<div class="detail-proj">`;
+        html += `<div class="detail-proj-name">📁 ${escHtml(proj.name)} <span style="color:#6f7883">(×${projCount})</span></div>`;
+        const fileMap = projectFilesForMode(proj, currentMode) || {};
+        Object.entries(fileMap).forEach(([file, counts]) => {
+          if (counts[name]) {
+            const openUrl = fileUrl(proj.path, file, 'view');
+            const downloadUrl = fileUrl(proj.path, file, 'download');
+            html += `<div class="detail-file">└
+              <a class="file-link" href="${escHtml(openUrl)}" target="_blank" rel="noopener">${escHtml(file)}</a>
+              <span>×${counts[name]}</span>
+              <a class="file-action" href="${escHtml(openUrl)}" target="_blank" rel="noopener">open</a>
+              <a class="file-action" href="${escHtml(downloadUrl)}">download</a>
+            </div>`;
+          }
+        });
+        html += `</div>`;
+      });
+
+      document.getElementById('detail-files').innerHTML = html || '<div class="empty">No file details.</div>';
+      document.getElementById('detail-panel').style.display = 'block';
+      loadCommandDocs(name);
+
+      const el = [...document.querySelectorAll('.rank-item')].find(item => item.dataset.prog === name);
+      if (el) el.scrollIntoView({block: 'nearest'});
+    }
+
+    function filterEntries(q) {
+      searchQuery = (q || '').toLowerCase();
+      renderRankList();
+      if (selectedEntry && !activeGlobal()[selectedEntry]) {
+        selectedEntry = null;
+        document.getElementById('detail-panel').style.display = 'none';
+        hideCommandDocs();
+      } else if (selectedEntry) {
+        selectEntry(selectedEntry);
+      }
+    }
+
+    function setView(v) {
+      if (!MODE[v] || !DATA) return;
+      const visible = new Set(visibleModes().map((mode) => mode.id));
+      if (!visible.has(v)) return;
+      currentMode = v;
+      selectedEntry = null;
+      searchQuery = '';
+      const search = document.getElementById('search');
+      if (search) search.value = '';
+      document.getElementById('detail-panel').style.display = 'none';
+      hideCommandDocs();
+      renderModeButtons();
+      renderStats();
+      renderRankList();
+    }
+
+    if (scanning) {
+      setSetupStatus('Scan running...', 'warn');
+      const poll = setInterval(async () => {
+        try {
+          const r = await fetch('/api/data');
+          const payload = await r.json();
+          if (!payload.scanning) {
+            clearInterval(poll);
+            window.location.assign(`${window.location.pathname}?done=${Date.now()}`);
+          }
+        } catch (_) {
+          // transient errors ignored during poll
+        }
+      }, 2000);
+    } else if (INITIAL_ERROR) {
+      setSetupStatus(`Last scan error: ${INITIAL_ERROR}`, 'warn');
+    } else {
+      setSetupStatus(`${selectedTargets.size} folders selected (staged) · click Scan`, 'ok');
+    }
+
+    async function maybeResetOnReload() {
+      const nav = performance.getEntriesByType('navigation');
+      const navType = nav && nav[0] ? nav[0].type : '';
+      if (navType !== 'reload') return false;
+      try {
+        await fetch('/api/session/reset', {method: 'POST'});
+      } catch (_) {
+        // ignore; hard reload fallback still leaves app usable
+      }
+      window.location.replace(window.location.pathname);
+      return true;
+    }
+
+    (async function init() {
+      const wasReset = await maybeResetOnReload();
+      if (wasReset) return;
+      renderTargetList();
+      if (DATA) {
+        renderModeButtons();
+        renderFileTypes();
+        setView('programs');
+      }
+    })();
+  </script>
+</body>
+</html>

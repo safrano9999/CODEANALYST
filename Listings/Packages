@@ -1,0 +1,5 @@
+# CODEANALYST mode file: Packages
+# File patterns only. Package tokens are extracted dynamically by parser logic.
+
+Dockerfile
+*.dockerfile

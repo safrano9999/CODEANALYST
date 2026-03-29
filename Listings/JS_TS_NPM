@@ -1,0 +1,38 @@
+# CODEANALYST mode file: JS_TS_NPM
+# Lines with wildcards or dots are treated as file patterns.
+# Other lines are treated as syntax tokens.
+
+# File patterns
+*.js
+*.ts
+*.mjs
+*.cjs
+*.jsx
+*.tsx
+*.mts
+*.cts
+package.json
+package-lock.json
+npm-shrinkwrap.json
+
+# Syntax tokens
+if
+else
+for
+while
+break
+continue
+function
+return
+import
+export
+const
+let
+var
+class
+new
+try
+catch
+finally
+async
+await
