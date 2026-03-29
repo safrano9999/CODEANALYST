@@ -29,19 +29,6 @@ Open: `http://127.0.0.1:7720`
 
 No global Python/pip needed: everything runs from `./venv/bin/...` ✅
 
-## ⚙️ Minimal Config
-
-Edit `codeanalyst.conf` and add folders to scan (one path per line), e.g.:
-
-```txt
-../
-/home/you/projects/MY_REPO
-```
-
 ## 🧩 Listings
 
-`Listings/` defines dynamic analysis tabs (for example `BASH_SHELL`, `PYTHON`, `JS_TS_NPM`, `Packages`).
-
-Each file can contain:
-- tokens (syntax/program-functions)
-- wildcard patterns (like `*.sh`, `*.py`, `Dockerfile`)
+Preconfigured for Bash/Shell, Python and JS/TS
