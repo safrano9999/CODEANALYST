@@ -25,7 +25,16 @@ python3 -m venv venv
 ./venv/bin/python app.py
 ```
 
-Open: `http://127.0.0.1:7720`
+Default bind: `0.0.0.0`
+
+Port and host can be configured in `codeanalyst.server.conf`:
+
+```ini
+host=0.0.0.0
+port=820
+```
+
+Open locally: `http://127.0.0.1:820`
 
 No global Python/pip needed: everything runs from `./venv/bin/...` ✅
 

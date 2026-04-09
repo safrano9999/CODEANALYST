@@ -32,12 +32,43 @@ SESSION_IDLE_TTL = 8 * 3600  # 8h idle cleanup in RAM
 COMMAND_INFO_TTL = 600  # 10 min
 VENV_BIN = Path(__file__).parent / "venv" / "bin"
 REPO_CACHE_DIR = Path(__file__).parent / ".cache"
+SERVER_CONFIG_FILE = Path(__file__).parent / "codeanalyst.server.conf"
 ANSI_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 CMD_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9+_.-]*$")
 
 
 _cmd_info_cache = {}
 _cmd_lock = threading.Lock()
+
+
+def _load_server_config() -> tuple[str, int]:
+    host = "0.0.0.0"
+    port = 820
+
+    if not SERVER_CONFIG_FILE.exists():
+        return host, port
+
+    for raw_line in SERVER_CONFIG_FILE.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = [part.strip() for part in line.split("=", 1)]
+        if key.lower() == "host" and value:
+            host = value
+        elif key.lower() == "port" and value:
+            try:
+                parsed_port = int(value)
+            except ValueError as exc:
+                raise ValueError(
+                    f"Invalid port in {SERVER_CONFIG_FILE.name}: {value}"
+                ) from exc
+            if not (1 <= parsed_port <= 65535):
+                raise ValueError(
+                    f"Port in {SERVER_CONFIG_FILE.name} must be between 1 and 65535."
+                )
+            port = parsed_port
+
+    return host, port
 
 
 def _new_cache_state() -> dict:
@@ -536,4 +567,5 @@ def api_refresh():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=7720, debug=False)
+    host, port = _load_server_config()
+    app.run(host=host, port=port, debug=False)
