@@ -1,0 +1,33 @@
+# Syntax token list (one token per line, lowercase).
+# Used to classify tokens into Syntax instead of Programs.
+break
+case
+continue
+declare
+def
+do
+done
+echo
+elif
+else
+esac
+except
+exit
+fi
+for
+from
+function
+if
+import
+local
+new
+return
+select
+set
+shift
+then
+trap
+true
+wait
+while
+with

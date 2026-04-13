@@ -1,0 +1,8 @@
+# Unified env_example (source: CONTAINER/module.toml)
+# Same keys across repos are asked once by CITADEL builder.
+# Project-specific keys such as *_PORT stay per repo.
+
+HOST=0.0.0.0 # Bind host (builder also exports CODEANALYST_HOST via alias)
+CODEANALYST_PORT=820 # CODEANALYST service port
+OPENAI_API_BASE=http://127.0.0.1:4000/v1 # OpenAI-compatible base URL (LiteLLM)
+DEFAULT_MODEL=openai/gpt-5.4 # Unified default model across services

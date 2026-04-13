@@ -1,0 +1,42 @@
+schema_version = 1
+
+[module]
+name = "codeanalyst"
+catalog = "public.list"
+kind = "repo"
+source = "https://github.com/safrano9999/CODEANALYST.git"
+target_dir = "CODEANALYST"
+env_ref = "CONTAINER/env_example"
+runtime_ref = "runtime.toml"
+description = "CODEANALYST web scanner"
+default_selected = true
+
+[[ports]]
+internal = 820
+publish_default = true
+description = "CODEANALYST HTTP"
+
+[[env]]
+key = "HOST"
+default = "0.0.0.0"
+description = "Bind host"
+shared_group = "bind_host"
+aliases = ["CODEANALYST_HOST"]
+
+[[env]]
+key = "CODEANALYST_PORT"
+default = "820"
+description = "CODEANALYST service port"
+aliases = ["APP_PORT", "PORT"]
+
+[[env]]
+key = "OPENAI_API_BASE"
+default = "http://127.0.0.1:4000/v1"
+description = "OpenAI-compatible base URL (LiteLLM)"
+shared_group = "litellm_base"
+
+[[env]]
+key = "DEFAULT_MODEL"
+default = "openai/gpt-5.4"
+description = "Unified default model across services"
+shared_group = "default_llm"

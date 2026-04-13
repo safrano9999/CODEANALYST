@@ -1,0 +1,30 @@
+# CODEANALYST mode file: PYTHON
+# Lines with wildcards or dots are treated as file patterns.
+# Other lines are treated as syntax tokens.
+
+# File patterns
+*.py
+
+# Syntax tokens
+if
+elif
+else
+for
+while
+break
+continue
+def
+return
+import
+from
+with
+except
+try
+finally
+class
+pass
+raise
+yield
+lambda
+async
+await
