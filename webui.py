@@ -1,5 +1,9 @@
 """CODEANALYST — Flask WebUI."""
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent / "functions"))
+
 from python_header import get, get_port  # noqa: F401 — loads .env
 
 import os

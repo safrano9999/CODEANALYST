@@ -1,0 +1,10 @@
+# CodeAnalyst bind host
+HOST=0.0.0.0
+
+# Server port
+CODEANALYST_PORT=1000
+
+# LiteLLM / OpenAI-compatible API
+OPENAI_API_BASE=http://127.0.0.1:4000/v1
+OPENAI_API_KEY=
+DEFAULT_MODEL=openai/gpt-5.4

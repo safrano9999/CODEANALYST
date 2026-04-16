@@ -45,4 +45,4 @@ fi
 if [ -x /opt/CITADEL/scan.sh ]; then
   (cd /opt/CITADEL && ./scan.sh || true)
 fi
-exec /bin/bash -lc 'cd /opt/CODEANALYST && python3 app.py'
+exec /bin/bash -lc 'cd /opt/CODEANALYST && python3 webui.py'
