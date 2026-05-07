@@ -2,6 +2,8 @@
 
 Know what your vibe-coded projects are *actually* using.
 
+![CODEANALYST](CODEANALYST.png)
+
 CODEANALYST scans your codebase and shows which external programs/commands appear most often, so you can review hidden dependencies, risky tooling, and automation behavior before pushing repo.
 Also it helps to understand the mechanics the agents used to deliver.
 
