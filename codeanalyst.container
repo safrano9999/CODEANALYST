@@ -1,6 +1,6 @@
 [Container]
 ContainerName=codeanalyst
-Image=localhost/codeanalyst
+Image=docker.io/safrano9999/codeanalyst
 PublishPort=80:80
 #Network=host
 #Volume=/:/host:ro

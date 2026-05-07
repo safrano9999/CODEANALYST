@@ -3,7 +3,7 @@
 
 services:
   codeanalyst:
-    image: localhost/codeanalyst
+    image: docker.io/safrano9999/codeanalyst
     container_name: codeanalyst
     hostname: codeanalyst
     ports:
