@@ -1,0 +1,17 @@
+# docker-compose.yml — CODEANALYST
+# Usage: docker compose up -d
+
+services:
+  codeanalyst:
+    image: localhost/codeanalyst
+    container_name: codeanalyst
+    hostname: codeanalyst
+    ports:
+      - "80:80"
+    #network_mode: host
+    #volumes:
+    #  - /:/host:ro
+    command: uvicorn webui:app --host 0.0.0.0 --port 80
+    restart: always
+    #labels:
+    #  - "com.centurylinklabs.watchtower.enable=true"

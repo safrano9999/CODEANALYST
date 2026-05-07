@@ -1,0 +1,16 @@
+[Container]
+ContainerName=codeanalyst
+Image=localhost/codeanalyst
+PublishPort=80:80
+#Network=host
+#Volume=/:/host:ro
+
+Exec=uvicorn webui:app --host 0.0.0.0 --port 80
+#AutoUpdate=registry
+
+[Service]
+Restart=always
+TimeoutStartSec=30
+
+[Install]
+WantedBy=default.target
