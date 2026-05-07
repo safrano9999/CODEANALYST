@@ -199,6 +199,21 @@ install_container() {
         $RUNTIME pull "docker.io/$IMAGE" 2>/dev/null || $RUNTIME pull "$IMAGE"
     fi
 
+    # Build project image
+    echo "  Building project image: $CONTAINER_NAME..."
+    local TMPFILE
+    TMPFILE="$(mktemp)"
+    cat > "$TMPFILE" <<DOCKERFILE
+FROM docker.io/$IMAGE
+WORKDIR /app
+COPY requirements.txt .
+RUN uv pip install --system -r requirements.txt
+COPY . .
+DOCKERFILE
+    $RUNTIME build -t "$CONTAINER_NAME" -f "$TMPFILE" "$PROJECT_DIR"
+    rm -f "$TMPFILE"
+    echo "  Image built: $CONTAINER_NAME"
+
     prompt_setup_vars
 
     # Generate quadlet + compose
@@ -214,8 +229,8 @@ install_container() {
     if [ -f "$PROJECT_DIR/.env" ]; then
         ENV_FLAG=" --env-file .env"
     fi
-    echo "    $RUNTIME run -d --name $CONTAINER_NAME -p 80:80 -v \$(pwd):/app -w /app${ENV_FLAG} docker.io/$IMAGE \\"
-    echo "      bash -c \"uv pip install --system -r requirements.txt && uvicorn webui:app --host 0.0.0.0 --port 80\""
+    echo "    $RUNTIME run -d --name $CONTAINER_NAME -p 80:80${ENV_FLAG} $CONTAINER_NAME \\"
+    echo "      uvicorn webui:app --host 0.0.0.0 --port 80"
     echo ""
     echo "  Compose:"
     echo "    docker compose up -d"
@@ -239,13 +254,11 @@ generate_quadlet() {
     cat > "$QUADLET_FILE" <<EOF
 [Container]
 ContainerName=$CONTAINER_NAME
-Image=docker.io/$IMAGE
+Image=localhost/$CONTAINER_NAME
 PublishPort=80:80
-Volume=$PROJECT_DIR:/app:Z
-WorkingDir=/app
 #Network=host
 ${ENV_LINE}
-Exec=bash -c "uv pip install --system -r requirements.txt && uvicorn webui:app --host 0.0.0.0 --port 80"
+Exec=uvicorn webui:app --host 0.0.0.0 --port 80
 #AutoUpdate=registry
 
 [Service]
@@ -275,16 +288,13 @@ generate_compose() {
 
 services:
   $CONTAINER_NAME:
-    image: docker.io/$IMAGE
+    image: localhost/$CONTAINER_NAME
     container_name: $CONTAINER_NAME
     hostname: $CONTAINER_NAME
     ports:
       - "80:80"
-    volumes:
-      - .:/app
-    working_dir: /app
     #network_mode: host${ENV_LINE}
-    command: bash -c "uv pip install --system -r requirements.txt && uvicorn webui:app --host 0.0.0.0 --port 80"
+    command: uvicorn webui:app --host 0.0.0.0 --port 80
     restart: always
     #labels:
     #  - "com.centurylinklabs.watchtower.enable=true"
