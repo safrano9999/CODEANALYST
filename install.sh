@@ -220,7 +220,7 @@ DOCKERFILE
     generate_compose
 
     echo ""
-    echo "  Run:  $RUNTIME run --rm -d $CONTAINER_NAME"
+    echo "  Run:  $RUNTIME run --rm -d --name $CONTAINER_NAME $CONTAINER_NAME"
     echo "  Or:   docker compose up -d"
 }
 
