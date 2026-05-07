@@ -130,14 +130,19 @@ def get_data(sid: str) -> tuple:
 
 def set_host_mode(sid: str, host_root: str) -> None:
     """Switch session to host filesystem mode. One-way per session."""
+    root = Path(host_root)
+    children = sorted(
+        [str(d) for d in root.iterdir() if d.is_dir() and d.name not in SKIP_DIRS],
+        key=str.lower,
+    )
     with _lock:
         cache = _session_caches.get(sid)
         if cache is None:
             cache = new_cache_state()
             _session_caches[sid] = cache
         cache["host_mode"] = True
-        cache["selected_paths"] = [host_root]
-        cache["extra_paths"] = [host_root]
+        cache["selected_paths"] = children
+        cache["extra_paths"] = children
         cache["data"] = None
         cache["ts"] = 0
         cache["last_seen"] = time.time()
@@ -376,14 +381,22 @@ def build_setup_payload(sid: str) -> dict:
         selected_paths = list(cache["selected_paths"])
         excluded_paths = list(cache["excluded_paths"])
         selected_file_types = list(cache["selected_file_types"])
+        host_mode = bool(cache.get("host_mode"))
 
-    options = discover_project_options(extra_paths=extra_paths)
-    option_paths = [item["path"] for item in options]
-
-    if selected_paths:
-        selected = [str(p) for p in normalize_selected_projects(selected_paths)]
+    if host_mode:
+        # Host mode: only show /host children, no container paths
+        options = [
+            {"name": p.rstrip("/").rsplit("/", 1)[-1], "path": p, "source": "host"}
+            for p in extra_paths
+        ]
+        selected = list(extra_paths)
     else:
-        selected = option_paths.copy()
+        options = discover_project_options(extra_paths=extra_paths)
+        option_paths = [item["path"] for item in options]
+        if selected_paths:
+            selected = [str(p) for p in normalize_selected_projects(selected_paths)]
+        else:
+            selected = option_paths.copy()
 
     return {
         "projects": options,

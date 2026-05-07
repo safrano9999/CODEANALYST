@@ -1334,9 +1334,17 @@
         const r = await fetch('/api/host-mode', {method: 'POST'});
         if (r.ok) {
           btn.style.display = 'none';
-          window.location.reload();
+          // Force full page reload to pick up host-mode session state
+          window.location.href = window.location.origin + '/?t=' + Date.now();
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Host folder mounted — switch to host';
         }
-      } catch(e) {}
+      } catch(e) {
+        console.error('host-mode switch failed:', e);
+        btn.disabled = false;
+        btn.textContent = 'Host folder mounted — switch to host';
+      }
     }
   </script>
 </body>
