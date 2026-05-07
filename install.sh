@@ -237,10 +237,6 @@ generate_quadlet() {
     fi
 
     cat > "$QUADLET_FILE" <<EOF
-# Podman Quadlet — $PROJECT_NAME
-# Install: cp $CONTAINER_NAME.container ~/.config/containers/systemd/
-# Then:    systemctl --user daemon-reload && systemctl --user start $CONTAINER_NAME
-
 [Container]
 ContainerName=$CONTAINER_NAME
 Image=docker.io/$IMAGE
