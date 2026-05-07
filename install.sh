@@ -184,8 +184,20 @@ install_uv() {
 install_container() {
     local RUNTIME="$1"
 
-    echo "  Pulling image $IMAGE..."
-    $RUNTIME pull "docker.io/$IMAGE" 2>/dev/null || $RUNTIME pull "$IMAGE"
+    if $RUNTIME image exists "docker.io/$IMAGE" 2>/dev/null || $RUNTIME inspect "docker.io/$IMAGE" >/dev/null 2>&1; then
+        echo "  Image found locally: $IMAGE"
+        printf "  Skip or pull new? [s/n]: "
+        read -r IMG_CHOICE
+        if [ "$IMG_CHOICE" = "n" ] || [ "$IMG_CHOICE" = "N" ]; then
+            echo "  Pulling latest $IMAGE..."
+            $RUNTIME pull "docker.io/$IMAGE"
+        else
+            echo "  Skipping pull."
+        fi
+    else
+        echo "  Pulling image $IMAGE..."
+        $RUNTIME pull "docker.io/$IMAGE" 2>/dev/null || $RUNTIME pull "$IMAGE"
+    fi
 
     prompt_setup_vars
     local ENV_ARGS=()
