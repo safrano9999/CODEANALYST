@@ -199,6 +199,29 @@ async def api_scan_start(request: Request):
     return response
 
 
+@app.post("/api/host-mode")
+def api_host_mode(request: Request):
+    """Switch to host filesystem mode (/host mount)."""
+    host_root = Path("/host")
+    if not host_root.is_dir():
+        return JSONResponse({"error": "No host mount found at /host."}, status_code=404)
+    sid, is_new = _ensure_session(request)
+    core.set_host_mode(sid, str(host_root))
+    response = JSONResponse({"status": "host_mode", "root": str(host_root)})
+    if is_new:
+        response.set_cookie(_SESSION_COOKIE, sid, httponly=True, samesite="lax")
+    return response
+
+
+@app.get("/api/host-mode")
+def api_host_mode_status(request: Request):
+    """Check if host mode is available and active."""
+    host_available = Path("/host").is_dir()
+    sid, _ = _ensure_session(request)
+    host_active = core.is_host_mode(sid)
+    return JSONResponse({"available": host_available, "active": host_active})
+
+
 @app.post("/api/refresh")
 async def api_refresh(request: Request):
     payload = await _safe_json(request)

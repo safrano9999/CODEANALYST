@@ -88,6 +88,7 @@ def new_cache_state() -> dict:
         "extra_paths": [],
         "last_error": None,
         "last_seen": time.time(),
+        "host_mode": False,
     }
 
 
@@ -125,6 +126,30 @@ def get_data(sid: str) -> tuple:
     """Return (data, running, last_error) for a session."""
     cache = get_or_create_cache(sid)
     return cache["data"], cache["running"], cache["last_error"]
+
+
+def set_host_mode(sid: str, host_root: str) -> None:
+    """Switch session to host filesystem mode. One-way per session."""
+    with _lock:
+        cache = _session_caches.get(sid)
+        if cache is None:
+            cache = new_cache_state()
+            _session_caches[sid] = cache
+        cache["host_mode"] = True
+        cache["selected_paths"] = [host_root]
+        cache["extra_paths"] = [host_root]
+        cache["data"] = None
+        cache["ts"] = 0
+        cache["last_seen"] = time.time()
+
+
+def is_host_mode(sid: str) -> bool:
+    """Check if session is in host mode."""
+    with _lock:
+        cache = _session_caches.get(sid)
+        if cache is None:
+            return False
+        return bool(cache.get("host_mode"))
 
 
 # ── Text Processing ──────────────────────────────────────────────────

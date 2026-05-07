@@ -119,8 +119,13 @@
   </style>
 </head>
 <body class="{{ 'has-data' if data else 'no-data' }}">
-  <h1>🔬 CODEANALYST</h1>
-  <div class="subtitle">Pick folders first, then scan.</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem">
+    <div>
+      <h1>🔬 CODEANALYST</h1>
+      <div class="subtitle">Pick folders first, then scan.</div>
+    </div>
+    <button class="btn" id="host-mode-btn" style="display:none" onclick="switchToHostMode()">Host folder mounted — switch to host</button>
+  </div>
 
   <div class="panel setup-panel">
     <div class="panel-head">
@@ -1305,7 +1310,34 @@
         renderFileTypes();
         setView('programs');
       }
+      checkHostMode();
     })();
+
+    async function checkHostMode() {
+      try {
+        const r = await fetch('/api/host-mode');
+        const d = await r.json();
+        const btn = document.getElementById('host-mode-btn');
+        if (d.available && !d.active) {
+          btn.style.display = '';
+        } else {
+          btn.style.display = 'none';
+        }
+      } catch(e) {}
+    }
+
+    async function switchToHostMode() {
+      const btn = document.getElementById('host-mode-btn');
+      btn.disabled = true;
+      btn.textContent = 'Switching...';
+      try {
+        const r = await fetch('/api/host-mode', {method: 'POST'});
+        if (r.ok) {
+          btn.style.display = 'none';
+          window.location.reload();
+        }
+      } catch(e) {}
+    }
   </script>
 </body>
 </html>
