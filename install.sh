@@ -224,6 +224,11 @@ DOCKERFILE
     generate_quadlet
     generate_compose
 
+    # Mark generated files as skip-worktree so local edits survive git pull
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        git update-index --skip-worktree "$CONTAINER_NAME.container" docker-compose.yml Containerfile 2>/dev/null || true
+    fi
+
     echo ""
     echo "  Start: podman-compose up -d"
     echo "     or: docker compose up -d"
