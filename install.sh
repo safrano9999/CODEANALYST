@@ -221,6 +221,11 @@ DOCKERFILE
 
     echo ""
     echo "  Start: $RUNTIME compose up -d"
+    echo ""
+    echo "  Quadlet:"
+    echo "    cp $CONTAINER_NAME.container ~/.config/containers/systemd/"
+    echo "    systemctl --user daemon-reload"
+    echo "    systemctl --user start $CONTAINER_NAME"
 }
 
 # ── Generate Podman Quadlet ──────────────────────────────────────────
