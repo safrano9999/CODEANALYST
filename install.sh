@@ -220,7 +220,8 @@ DOCKERFILE
     generate_compose
 
     echo ""
-    echo "  Start: $RUNTIME compose up -d"
+    echo "  Start: podman-compose up -d"
+    echo "     or: docker compose up -d"
     echo ""
     echo "  Quadlet:"
     echo "    cp $CONTAINER_NAME.container ~/.config/containers/systemd/"
