@@ -229,8 +229,7 @@ DOCKERFILE
     if [ -f "$PROJECT_DIR/.env" ]; then
         ENV_FLAG=" --env-file .env"
     fi
-    echo "    $RUNTIME run -d --name $CONTAINER_NAME -p 80:80${ENV_FLAG} $CONTAINER_NAME \\"
-    echo "      uvicorn webui:app --host 0.0.0.0 --port 80"
+    echo "    $RUNTIME run --rm -d --name $CONTAINER_NAME -p 80:80${ENV_FLAG} $CONTAINER_NAME"
     echo ""
     echo "  Compose:"
     echo "    docker compose up -d"
