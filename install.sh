@@ -219,25 +219,6 @@ DOCKERFILE
     generate_quadlet
     generate_compose
 
-    # Show how to start
-    echo ""
-    echo "  ── How to start ──────────────────────────────────"
-    echo ""
-    echo "  Manual:"
-    local ENV_FLAG=""
-    if [ -f "$PROJECT_DIR/.env" ]; then
-        ENV_FLAG=" --env-file .env"
-    fi
-    echo "    $RUNTIME run --rm -d --name $CONTAINER_NAME -p 80:80${ENV_FLAG} $CONTAINER_NAME"
-    echo ""
-    echo "  Compose:"
-    echo "    docker compose up -d"
-    echo ""
-    echo "  Quadlet (systemd):"
-    echo "    cp $CONTAINER_NAME.container ~/.config/containers/systemd/"
-    echo "    systemctl --user daemon-reload"
-    echo "    systemctl --user start $CONTAINER_NAME"
-    echo ""
 }
 
 # ── Generate Podman Quadlet ──────────────────────────────────────────
