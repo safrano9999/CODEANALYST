@@ -220,8 +220,7 @@ DOCKERFILE
     generate_compose
 
     echo ""
-    echo "  Run:  $RUNTIME run --rm -d --name $CONTAINER_NAME $CONTAINER_NAME"
-    echo "  Or:   docker compose up -d"
+    echo "  Start: $RUNTIME compose up -d"
 }
 
 # ── Generate Podman Quadlet ──────────────────────────────────────────
