@@ -201,17 +201,16 @@ install_container() {
 
     # Build project image
     echo "  Building project image: $CONTAINER_NAME..."
-    local TMPFILE
-    TMPFILE="$(mktemp)"
-    cat > "$TMPFILE" <<DOCKERFILE
+    local CFILE="$PROJECT_DIR/Containerfile"
+    cat > "$CFILE" <<DOCKERFILE
 FROM docker.io/$IMAGE
 WORKDIR /app
 COPY requirements.txt .
 RUN uv pip install --system -r requirements.txt
 COPY . .
+CMD ["uvicorn", "webui:app", "--host", "0.0.0.0", "--port", "80"]
 DOCKERFILE
-    $RUNTIME build -t "$CONTAINER_NAME" -f "$TMPFILE" "$PROJECT_DIR"
-    rm -f "$TMPFILE"
+    $RUNTIME build -t "$CONTAINER_NAME" -f "$CFILE" "$PROJECT_DIR"
     echo "  Image built: $CONTAINER_NAME"
 
     prompt_setup_vars
