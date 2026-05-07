@@ -38,6 +38,14 @@ docker pull safrano9999/codeanalyst
 docker run --rm -d --name codeanalyst -p 80:80 safrano9999/codeanalyst
 ```
 
+To give the container read-only access to the entire host filesystem:
+
+```bash
+docker run --rm -d --name codeanalyst -p 80:80 -v /:/host:ro safrano9999/codeanalyst
+```
+
+The host filesystem will be available under `/host` inside the container.
+
 Base image: `docker.io/safrano9999/python-fastapi:3.13`
 
 The `install.sh` container option builds a project-specific image and generates:
