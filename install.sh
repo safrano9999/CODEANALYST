@@ -1,3 +1,324 @@
 #!/bin/bash
-# CODEANALYST installer — delegates to the shared install template.
-exec "$(dirname "$0")/../SCRIPTS/INSTALL/install_template.sh" "$@"
+set -euo pipefail
+
+# ── CODEANALYST Installer ───────────────────────────────────────────
+PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_NAME="CODEANALYST"
+CONTAINER_NAME="codeanalyst"
+IMAGE="safrano9999/python-fastapi:3.13"
+
+echo ""
+echo "  Project: $PROJECT_NAME"
+echo "  Dir:     $PROJECT_DIR"
+echo ""
+
+# ── Requirements check ───────────────────────────────────────────────
+if [ ! -f "$PROJECT_DIR/requirements.txt" ]; then
+    echo "Error: No requirements.txt found in $PROJECT_DIR"
+    exit 1
+fi
+
+# ── Detect available tools ───────────────────────────────────────────
+HAS_PIP=false
+HAS_UV=false
+HAS_VENV=false
+HAS_PODMAN=false
+HAS_DOCKER=false
+
+command -v pip  >/dev/null 2>&1 && HAS_PIP=true
+command -v pip3 >/dev/null 2>&1 && HAS_PIP=true
+command -v uv   >/dev/null 2>&1 && HAS_UV=true
+python3 -m venv --help >/dev/null 2>&1 && HAS_VENV=true
+command -v podman >/dev/null 2>&1 && HAS_PODMAN=true
+
+# Check for real Docker (not podman wrapper)
+if command -v docker >/dev/null 2>&1; then
+    DOCKER_VERSION="$(docker --version 2>&1 || true)"
+    if [[ "$DOCKER_VERSION" != *"podman"* ]]; then
+        HAS_DOCKER=true
+    fi
+fi
+
+# ── Build menu ───────────────────────────────────────────────────────
+OPTIONS=()
+LABELS=()
+
+if $HAS_PIP; then
+    OPTIONS+=("pip")
+    LABELS+=("pip        — pip install directly")
+fi
+if $HAS_VENV; then
+    OPTIONS+=("venv")
+    LABELS+=("venv       — create venv + pip install")
+fi
+if $HAS_UV; then
+    OPTIONS+=("uv")
+    LABELS+=("uv         — uv pip install directly")
+fi
+if $HAS_PODMAN; then
+    OPTIONS+=("podman")
+    LABELS+=("podman     — container install (uv)")
+fi
+if $HAS_DOCKER; then
+    OPTIONS+=("docker")
+    LABELS+=("docker     — container install (uv)")
+fi
+
+if [ ${#OPTIONS[@]} -eq 0 ]; then
+    echo "Error: No install method available."
+    echo "Install at least one of: pip, uv, python3-venv, podman, or docker."
+    exit 1
+fi
+
+echo "  Available install methods:"
+echo ""
+for i in "${!OPTIONS[@]}"; do
+    echo "    $((i + 1))) ${LABELS[$i]}"
+done
+echo "    0) cancel"
+echo ""
+printf "  Choose [0-%d]: " "${#OPTIONS[@]}"
+read -r CHOICE
+
+if [ "$CHOICE" = "0" ] || [ -z "$CHOICE" ]; then
+    echo "  Cancelled."
+    exit 0
+fi
+
+INDEX=$((CHOICE - 1))
+if [ "$INDEX" -lt 0 ] || [ "$INDEX" -ge "${#OPTIONS[@]}" ]; then
+    echo "  Invalid choice."
+    exit 1
+fi
+
+METHOD="${OPTIONS[$INDEX]}"
+echo ""
+echo "  Installing with: $METHOD"
+echo ""
+
+# ── Setup vars from .env.example ─────────────────────────────────────
+prompt_setup_vars() {
+    local ENV_FILE="$PROJECT_DIR/.env"
+    local ENV_EXAMPLE="$PROJECT_DIR/.env.example"
+
+    if [ ! -f "$ENV_EXAMPLE" ]; then
+        return
+    fi
+
+    echo "  Configuring environment variables..."
+    echo ""
+
+    local ALL_VARS=""
+
+    while IFS= read -r line; do
+        stripped="$(echo "$line" | sed 's/^[[:space:]]*//')"
+        if [ -z "$stripped" ] || [[ "$stripped" == \#* && "$stripped" != *"# ASK"* ]]; then
+            ALL_VARS+="$line"$'\n'
+            continue
+        fi
+
+        if [[ "$line" == *"# ASK"* ]]; then
+            local key_part="${line%%# ASK*}"
+            key_part="$(echo "$key_part" | sed 's/[[:space:]]*$//')"
+            local key="${key_part%%=*}"
+            local default="${key_part#*=}"
+            default="$(echo "$default" | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')"
+
+            if [ -n "$default" ]; then
+                printf "    %s [%s]: " "$key" "$default"
+            else
+                printf "    %s: " "$key"
+            fi
+            read -r value
+            if [ -z "$value" ]; then
+                value="$default"
+            fi
+            ALL_VARS+="$key=$value"$'\n'
+        else
+            ALL_VARS+="$line"$'\n'
+        fi
+    done < "$ENV_EXAMPLE"
+
+    printf "%s" "$ALL_VARS" > "$ENV_FILE"
+    echo ""
+    echo "  Written to $ENV_FILE"
+}
+
+# ── Show packages ────────────────────────────────────────────────────
+show_deps() {
+    echo "  Packages to install from requirements.txt:"
+    echo ""
+    while IFS= read -r line; do
+        pkg="$(echo "$line" | sed 's/[>=<].*//' | sed 's/\[.*\]//' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')"
+        if [ -n "$pkg" ] && [[ "$pkg" != \#* ]]; then
+            echo "    - $pkg"
+        fi
+    done < "$PROJECT_DIR/requirements.txt"
+    echo ""
+}
+
+# ── Baremetal installs ───────────────────────────────────────────────
+install_pip() {
+    show_deps
+    pip install -r "$PROJECT_DIR/requirements.txt"
+    prompt_setup_vars
+}
+
+install_venv() {
+    show_deps
+    if [ ! -d "$PROJECT_DIR/venv" ]; then
+        echo "  Creating venv..."
+        python3 -m venv "$PROJECT_DIR/venv"
+    fi
+    "$PROJECT_DIR/venv/bin/pip" install -r "$PROJECT_DIR/requirements.txt"
+    prompt_setup_vars
+}
+
+install_uv() {
+    show_deps
+    uv pip install -r "$PROJECT_DIR/requirements.txt"
+    prompt_setup_vars
+}
+
+# ── Container install ────────────────────────────────────────────────
+install_container() {
+    local RUNTIME="$1"
+
+    echo "  Pulling image $IMAGE..."
+    $RUNTIME pull "docker.io/$IMAGE" 2>/dev/null || $RUNTIME pull "$IMAGE"
+
+    prompt_setup_vars
+    local ENV_ARGS=()
+    if [ -f "$PROJECT_DIR/.env" ]; then
+        ENV_ARGS+=(--env-file "$PROJECT_DIR/.env")
+    fi
+
+    echo ""
+    echo "  Starting container: $CONTAINER_NAME"
+    echo "  Port: 80 -> 80"
+    echo ""
+
+    $RUNTIME run -d \
+        --replace \
+        --name "$CONTAINER_NAME" \
+        --hostname "$CONTAINER_NAME" \
+        -p 80:80 \
+        -v "$PROJECT_DIR:/app:Z" \
+        -w /app \
+        "${ENV_ARGS[@]}" \
+        "docker.io/$IMAGE" \
+        bash -c "uv pip install --system -r requirements.txt && uvicorn webui:app --host 0.0.0.0 --port 80"
+
+    echo ""
+    echo "  Container '$CONTAINER_NAME' started."
+    echo "  Logs:   $RUNTIME logs -f $CONTAINER_NAME"
+    echo "  Shell:  $RUNTIME exec -it $CONTAINER_NAME bash"
+    echo "  Stop:   $RUNTIME stop $CONTAINER_NAME"
+
+    # Generate quadlet + compose
+    generate_quadlet
+    generate_compose
+
+    # Show how to start
+    echo ""
+    echo "  ── How to start ──────────────────────────────────"
+    echo ""
+    echo "  Manual:"
+    local ENV_FLAG=""
+    if [ -f "$PROJECT_DIR/.env" ]; then
+        ENV_FLAG=" --env-file .env"
+    fi
+    echo "    $RUNTIME run -d --name $CONTAINER_NAME -p 80:80 -v \$(pwd):/app -w /app${ENV_FLAG} docker.io/$IMAGE \\"
+    echo "      bash -c \"uv pip install --system -r requirements.txt && uvicorn webui:app --host 0.0.0.0 --port 80\""
+    echo ""
+    echo "  Compose:"
+    echo "    docker compose up -d"
+    echo ""
+    echo "  Quadlet (systemd):"
+    echo "    cp $CONTAINER_NAME.container ~/.config/containers/systemd/"
+    echo "    systemctl --user daemon-reload"
+    echo "    systemctl --user start $CONTAINER_NAME"
+    echo ""
+}
+
+# ── Generate Podman Quadlet ──────────────────────────────────────────
+generate_quadlet() {
+    local QUADLET_FILE="$PROJECT_DIR/$CONTAINER_NAME.container"
+    local ENV_LINE=""
+
+    if [ -f "$PROJECT_DIR/.env" ]; then
+        ENV_LINE="EnvironmentFile=$PROJECT_DIR/.env"
+    fi
+
+    cat > "$QUADLET_FILE" <<EOF
+# Podman Quadlet — $PROJECT_NAME
+# Install: cp $CONTAINER_NAME.container ~/.config/containers/systemd/
+# Then:    systemctl --user daemon-reload && systemctl --user start $CONTAINER_NAME
+
+[Container]
+ContainerName=$CONTAINER_NAME
+Image=docker.io/$IMAGE
+PublishPort=80:80
+Volume=$PROJECT_DIR:/app:Z
+WorkingDir=/app
+Network=host
+${ENV_LINE}
+Exec=bash -c "uv pip install --system -r requirements.txt && uvicorn webui:app --host 0.0.0.0 --port 80"
+#AutoUpdate=registry
+
+[Service]
+Restart=always
+TimeoutStartSec=30
+
+[Install]
+WantedBy=default.target
+EOF
+
+    echo ""
+    echo "  Generated: $QUADLET_FILE"
+}
+
+# ── Generate docker-compose.yml ──────────────────────────────────────
+generate_compose() {
+    local COMPOSE_FILE="$PROJECT_DIR/docker-compose.yml"
+    local ENV_LINE=""
+
+    if [ -f "$PROJECT_DIR/.env" ]; then
+        ENV_LINE=$'\n    env_file:\n      - .env'
+    fi
+
+    cat > "$COMPOSE_FILE" <<EOF
+# docker-compose.yml — $PROJECT_NAME
+# Usage: docker compose up -d
+
+services:
+  $CONTAINER_NAME:
+    image: docker.io/$IMAGE
+    container_name: $CONTAINER_NAME
+    hostname: $CONTAINER_NAME
+    ports:
+      - "80:80"
+    volumes:
+      - .:/app
+    working_dir: /app
+    network_mode: host${ENV_LINE}
+    command: bash -c "uv pip install --system -r requirements.txt && uvicorn webui:app --host 0.0.0.0 --port 80"
+    restart: always
+    #labels:
+    #  - "com.centurylinklabs.watchtower.enable=true"
+EOF
+
+    echo "  Generated: $COMPOSE_FILE"
+}
+
+# ── Run ──────────────────────────────────────────────────────────────
+case "$METHOD" in
+    pip)    install_pip ;;
+    venv)   install_venv ;;
+    uv)     install_uv ;;
+    podman) install_container podman ;;
+    docker) install_container docker ;;
+esac
+
+echo ""
+echo "  Done."
