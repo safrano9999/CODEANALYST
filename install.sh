@@ -200,32 +200,6 @@ install_container() {
     fi
 
     prompt_setup_vars
-    local ENV_ARGS=()
-    if [ -f "$PROJECT_DIR/.env" ]; then
-        ENV_ARGS+=(--env-file "$PROJECT_DIR/.env")
-    fi
-
-    echo ""
-    echo "  Starting container: $CONTAINER_NAME"
-    echo "  Port: 80 -> 80"
-    echo ""
-
-    $RUNTIME run -d \
-        --replace \
-        --name "$CONTAINER_NAME" \
-        --hostname "$CONTAINER_NAME" \
-        -p 80:80 \
-        -v "$PROJECT_DIR:/app:Z" \
-        -w /app \
-        "${ENV_ARGS[@]}" \
-        "docker.io/$IMAGE" \
-        bash -c "uv pip install --system -r requirements.txt && uvicorn webui:app --host 0.0.0.0 --port 80"
-
-    echo ""
-    echo "  Container '$CONTAINER_NAME' started."
-    echo "  Logs:   $RUNTIME logs -f $CONTAINER_NAME"
-    echo "  Shell:  $RUNTIME exec -it $CONTAINER_NAME bash"
-    echo "  Stop:   $RUNTIME stop $CONTAINER_NAME"
 
     # Generate quadlet + compose
     generate_quadlet
