@@ -247,7 +247,7 @@ Image=docker.io/$IMAGE
 PublishPort=80:80
 Volume=$PROJECT_DIR:/app:Z
 WorkingDir=/app
-Network=host
+#Network=host
 ${ENV_LINE}
 Exec=bash -c "uv pip install --system -r requirements.txt && uvicorn webui:app --host 0.0.0.0 --port 80"
 #AutoUpdate=registry
@@ -287,7 +287,7 @@ services:
     volumes:
       - .:/app
     working_dir: /app
-    network_mode: host${ENV_LINE}
+    #network_mode: host${ENV_LINE}
     command: bash -c "uv pip install --system -r requirements.txt && uvicorn webui:app --host 0.0.0.0 --port 80"
     restart: always
     #labels:
