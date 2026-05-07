@@ -202,6 +202,7 @@ install_container() {
     # Build project image
     echo "  Building project image: $CONTAINER_NAME..."
     local CFILE="$PROJECT_DIR/Containerfile"
+    if [ ! -f "$CFILE" ]; then
     cat > "$CFILE" <<DOCKERFILE
 FROM docker.io/$IMAGE
 WORKDIR /app
@@ -210,6 +211,9 @@ RUN uv pip install --system -r requirements.txt
 COPY . .
 CMD ["uvicorn", "webui:app", "--host", "0.0.0.0", "--port", "80"]
 DOCKERFILE
+    else
+        echo "  Containerfile exists, keeping it."
+    fi
     $RUNTIME build -t "$CONTAINER_NAME" -f "$CFILE" "$PROJECT_DIR"
     echo "  Image built: $CONTAINER_NAME"
 
@@ -238,6 +242,10 @@ generate_quadlet() {
         ENV_LINE="EnvironmentFile=$PROJECT_DIR/.env"
     fi
 
+    if [ -f "$QUADLET_FILE" ]; then
+        echo "  $QUADLET_FILE exists, keeping it."
+        return
+    fi
     cat > "$QUADLET_FILE" <<EOF
 [Container]
 ContainerName=$CONTAINER_NAME
@@ -269,6 +277,10 @@ generate_compose() {
         ENV_LINE=$'\n    env_file:\n      - .env'
     fi
 
+    if [ -f "$COMPOSE_FILE" ]; then
+        echo "  $COMPOSE_FILE exists, keeping it."
+        return
+    fi
     cat > "$COMPOSE_FILE" <<EOF
 # docker-compose.yml — $PROJECT_NAME
 # Usage: docker compose up -d
