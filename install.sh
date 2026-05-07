@@ -215,6 +215,7 @@ DOCKERFILE
         echo "  Containerfile exists, keeping it."
     fi
     $RUNTIME build -t "$CONTAINER_NAME" -f "$CFILE" "$PROJECT_DIR"
+    $RUNTIME tag "$CONTAINER_NAME" "docker.io/safrano9999/$CONTAINER_NAME"
     echo "  Image built: $CONTAINER_NAME"
 
     prompt_setup_vars
