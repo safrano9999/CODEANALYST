@@ -1,3 +1,2 @@
-flask>=3.0
 tldr>=3.4
 python-dotenv

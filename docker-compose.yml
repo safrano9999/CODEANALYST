@@ -7,11 +7,11 @@ services:
     container_name: codeanalyst
     hostname: codeanalyst
     ports:
-      - "80:80"
+      - "11000:11000"
     #network_mode: host
     #volumes:
     #  - /:/host:ro
-    command: uvicorn webui:app --host 0.0.0.0 --port 80
+    command: uvicorn webui:app --host 127.0.0.1 --port 11000
     restart: always
     #labels:
     #  - "com.centurylinklabs.watchtower.enable=true"

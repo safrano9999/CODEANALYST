@@ -37,13 +37,13 @@ Pre-built image on Docker Hub: `docker.io/safrano9999/codeanalyst:latest`
 
 ```bash
 docker pull safrano9999/codeanalyst
-docker run --rm -d --name codeanalyst -p 80:80 safrano9999/codeanalyst
+docker run --rm -d --name codeanalyst -p 11000:11000 safrano9999/codeanalyst
 ```
 
 To give the container read-only access to the entire host filesystem:
 
 ```bash
-docker run --rm -d --name codeanalyst -p 80:80 -v /:/host:ro safrano9999/codeanalyst
+docker run --rm -d --name codeanalyst -p 11000:11000 -v /:/host:ro safrano9999/codeanalyst
 ```
 
 The host filesystem will be available under `/host` inside the container.
@@ -72,8 +72,8 @@ docker compose up -d
 Port and host can be configured in `CODEANALYST.conf`:
 
 ```ini
-host=0.0.0.0
-port=820
+host=127.0.0.1
+port=11000
 ```
 
 ## Listings

@@ -1,0 +1,1 @@
+../SCRIPTS/INSTALL/config_template.sh

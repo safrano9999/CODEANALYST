@@ -209,7 +209,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN uv pip install --system -r requirements.txt
 COPY . .
-CMD ["uvicorn", "webui:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "webui:app", "--host", "127.0.0.1", "--port", "11000"]
 DOCKERFILE
     else
         echo "  Containerfile exists, keeping it."
@@ -256,10 +256,10 @@ generate_quadlet() {
 [Container]
 ContainerName=$CONTAINER_NAME
 Image=localhost/$CONTAINER_NAME
-PublishPort=80:80
+PublishPort=11000:11000
 #Network=host
 ${ENV_LINE}
-Exec=uvicorn webui:app --host 0.0.0.0 --port 80
+Exec=uvicorn webui:app --host 127.0.0.1 --port 11000
 #AutoUpdate=registry
 
 [Service]
@@ -297,9 +297,9 @@ services:
     container_name: $CONTAINER_NAME
     hostname: $CONTAINER_NAME
     ports:
-      - "80:80"
+      - "11000:11000"
     #network_mode: host${ENV_LINE}
-    command: uvicorn webui:app --host 0.0.0.0 --port 80
+    command: uvicorn webui:app --host 127.0.0.1 --port 11000
     restart: always
     #labels:
     #  - "com.centurylinklabs.watchtower.enable=true"

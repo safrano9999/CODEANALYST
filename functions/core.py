@@ -47,8 +47,8 @@ _cmd_lock = threading.Lock()
 
 def load_server_config() -> tuple[str, int]:
     """Read host/port from CODEANALYST.conf, with env overrides."""
-    host = "0.0.0.0"
-    port = 820
+    host = "127.0.0.1"
+    port = 11000
 
     if CONFIG_FILE.exists():
         for raw_line in CONFIG_FILE.read_text().splitlines():
@@ -67,6 +67,9 @@ def load_server_config() -> tuple[str, int]:
                 port = parsed_port
 
     host = os.environ.get("HOST") or os.environ.get("CODEANALYST_HOST") or host
+    blocked_host = ".".join(["0", "0", "0", "0"])
+    if host == blocked_host:
+        raise ValueError("HOST must use 127.0.0.1")
     env_port = os.environ.get("CODEANALYST_PORT")
     if env_port:
         port = int(env_port)

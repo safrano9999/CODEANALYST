@@ -1,11 +1,11 @@
 [Container]
 ContainerName=codeanalyst
 Image=docker.io/safrano9999/codeanalyst
-PublishPort=80:80
+PublishPort=11000:11000
 #Network=host
 #Volume=/:/host:ro
 
-Exec=uvicorn webui:app --host 0.0.0.0 --port 80
+Exec=uvicorn webui:app --host 127.0.0.1 --port 11000
 #AutoUpdate=registry
 
 [Service]
