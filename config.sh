@@ -52,19 +52,31 @@ while IFS= read -r line <&3; do
     # Remove stale empty entry if present
     sed -i "/^${key}=$/d" "$ENV" 2>/dev/null || true
 
-    if [ -n "$default" ]; then
-        printf "    %s [%s]: " "$key" "$default"
+    used_prefill=false
+    if [ -n "$default" ] && [ -t 0 ]; then
+        read -e -i "$default" -r -p "    $key: " val || true
+        used_prefill=true
     else
-        printf "    %s: " "$key"
+        if [ -n "$default" ]; then
+            printf "    %s [%s]: " "$key" "$default"
+        else
+            printf "    %s: " "$key"
+        fi
+        read -r val || true
     fi
-    read -r val || true
-    if [ -z "$val" ]; then
+    if [ "$used_prefill" != "true" ] && [ -z "$val" ]; then
         val="$default"
     fi
 
     if [ -z "$val" ]; then
-        echo "    $key= skipped"
-        continue
+        if [ "$used_prefill" = "true" ] && [ -n "$default" ]; then
+            echo "$key=" >> "$ENV"
+            echo "    $key= set empty"
+            continue
+        else
+            echo "    $key= skipped"
+            continue
+        fi
     fi
     echo "$key=$val" >> "$ENV"
 done 3< "$EXAMPLE"
