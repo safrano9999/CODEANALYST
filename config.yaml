@@ -1,0 +1,8 @@
+services:
+  codeanalyst:
+    title: CODEANALYST web UI
+    webui:
+      host: 0.0.0.0
+      port: 11000
+      publish_port: 11000
+      env_port: CODEANALYST_PORT
