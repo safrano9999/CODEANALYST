@@ -1,4 +1,0 @@
-services:
-  fedora43-ai:
-    ports:
-      - "11000:11000"
