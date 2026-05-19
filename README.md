@@ -69,16 +69,17 @@ docker compose up -d
 
 ## Configuration
 
-Port and host can be configured in `config.yaml`:
+Port and host can be configured in `config.conf`:
 
-```yaml
-inject_overwrite: true
-services:
-  codeanalyst:
-    webui:
-      host: 127.0.0.1
-      port: 11000
-      env_port: CODEANALYST_PORT
+```env
+# Injected process environment wins over config.conf and .env
+INJECT_OVERWRITE=true
+
+# Host bind address for direct run and published ports
+HOST=127.0.0.1
+
+# CODEANALYST web UI internal port
+CODEANALYST_PORT=11000
 ```
 
 ## Listings
