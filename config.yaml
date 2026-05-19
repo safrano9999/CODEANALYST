@@ -1,8 +1,12 @@
+# Injected process env wins over config.yaml and .env
+inject_overwrite: true
+
 services:
+  # CODEANALYST web UI
   codeanalyst:
     title: CODEANALYST web UI
     webui:
-      host: 0.0.0.0
+      host: 127.0.0.1
       port: 11000
       publish_port: 11000
       env_port: CODEANALYST_PORT

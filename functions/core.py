@@ -28,7 +28,6 @@ SESSION_IDLE_TTL = 8 * 3600  # 8h
 COMMAND_INFO_TTL = 600  # 10 min
 VENV_BIN = BASE_DIR / "venv" / "bin"
 REPO_CACHE_DIR = BASE_DIR / ".cache"
-CONFIG_FILE = BASE_DIR / "CODEANALYST.conf"
 
 ANSI_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 CMD_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9+_.-]*$")
@@ -46,33 +45,11 @@ _cmd_lock = threading.Lock()
 
 
 def load_server_config() -> tuple[str, int]:
-    """Read host/port from CODEANALYST.conf, with env overrides."""
-    host = "127.0.0.1"
-    port = 11000
-
-    if CONFIG_FILE.exists():
-        for raw_line in CONFIG_FILE.read_text().splitlines():
-            line = raw_line.strip()
-            if not line or line.startswith("#") or line.startswith("[") or "=" not in line:
-                continue
-            key, value = [part.strip() for part in line.split("=", 1)]
-            if key.lower() == "host" and value:
-                host = value
-            elif key.lower() == "port" and value:
-                parsed_port = int(value)
-                if not (1 <= parsed_port <= 65535):
-                    raise ValueError(
-                        f"Port in {CONFIG_FILE.name} must be 1-65535."
-                    )
-                port = parsed_port
-
-    host = os.environ.get("HOST") or os.environ.get("CODEANALYST_HOST") or host
-    blocked_host = ".".join(["0", "0", "0", "0"])
-    if host == blocked_host:
-        raise ValueError("HOST must use 127.0.0.1")
-    env_port = os.environ.get("CODEANALYST_PORT")
-    if env_port:
-        port = int(env_port)
+    """Read host/port from the already loaded environment."""
+    host = os.environ.get("HOST") or os.environ.get("CODEANALYST_HOST") or "127.0.0.1"
+    port = int(os.environ.get("CODEANALYST_PORT", "11000") or "11000")
+    if not (1 <= port <= 65535):
+        raise ValueError("CODEANALYST_PORT must be 1-65535.")
 
     return host, port
 

@@ -17,8 +17,8 @@ from shell_special_cases import (
 
 # ── Config ────────────────────────────────────────────────────────────
 
-CONFIG_FILE = Path(__file__).resolve().parent.parent / "CODEANALYST.conf"
-LISTINGS_DIR = Path(__file__).resolve().parent.parent / "Listings"
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+LISTINGS_DIR = PROJECT_DIR / "Listings"
 
 # File extensions to scan
 SCAN_EXTENSIONS = {
@@ -1046,19 +1046,19 @@ def extract_python_commands_ast(
 # ── Loader ────────────────────────────────────────────────────────────
 
 def load_scan_paths():
-    """Load scan paths from config file."""
+    """Load scan paths from the already loaded environment."""
     paths = []
-    config_dir = CONFIG_FILE.parent
-    if not CONFIG_FILE.exists():
-        return [config_dir.parent]
+    raw_paths = os.environ.get("CODEANALYST_PATHS", "").strip()
+    if not raw_paths:
+        return [PROJECT_DIR.parent]
 
-    for line in CONFIG_FILE.read_text().splitlines():
+    for line in raw_paths.split(os.pathsep):
         line = line.strip()
-        if not line or line.startswith("#"):
+        if not line:
             continue
         p = Path(os.path.expanduser(line))
         if not p.is_absolute():
-            p = (config_dir / p).resolve()
+            p = (PROJECT_DIR / p).resolve()
         else:
             p = p.resolve()
         if p.exists():
@@ -1070,7 +1070,7 @@ def resolve_input_dir(raw_path: str | Path) -> Path:
     """Resolve a user-provided directory path."""
     p = Path(os.path.expanduser(str(raw_path).strip()))
     if not p.is_absolute():
-        p = (CONFIG_FILE.parent / p).resolve()
+        p = (PROJECT_DIR / p).resolve()
     else:
         p = p.resolve()
     return p
