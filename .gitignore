@@ -1,4 +1,5 @@
 .env
 config.conf
+config.sh
 venv/
 __pycache__/
