@@ -1,5 +1,7 @@
 .env
 config.conf
 config.sh
+docker-compose.yml
+*.container
 venv/
 __pycache__/
