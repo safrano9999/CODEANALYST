@@ -69,7 +69,7 @@ docker compose up -d
 
 ## Configuration
 
-Port and host can be configured in `config.conf`:
+Port and host can be configured in `config.conf`; defaults live in `config.conf_example`:
 
 ```env
 # Injected process environment wins over config.conf and .env
