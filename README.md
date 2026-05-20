@@ -20,16 +20,10 @@ Also it helps to understand the mechanics the agents used to deliver.
 ```bash
 git clone https://github.com/safrano9999/CODEANALYST.git
 cd CODEANALYST
-chmod +x install.sh
-./install.sh
+cp config.conf_example config.conf
+pip install -r requirements.txt
+python webui.py
 ```
-
-The installer detects what's available and offers matching install methods:
-
-- **pip** — direct install
-- **venv** — isolated venv install
-- **uv** — fast install via uv
-- **podman / docker** — container install using `safrano9999/python-fastapi:3.13`
 
 ## Container
 
@@ -50,7 +44,7 @@ The host filesystem will be available under `/host` inside the container.
 
 Base image: `docker.io/safrano9999/python-fastapi:3.13`
 
-The `install.sh` container option builds a project-specific image and generates:
+The repository includes:
 - `Containerfile`
 - `docker-compose.yml`
 - `codeanalyst.container` (Podman Quadlet)
