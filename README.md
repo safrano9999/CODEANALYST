@@ -66,11 +66,8 @@ docker compose up -d
 Port and host can be configured in `config.conf`; defaults live in `config.conf_example`:
 
 ```env
-# Injected process environment wins over config.conf and .env
-INJECT_OVERWRITE=true
-
-# Host bind address for direct run and published ports
-HOST=127.0.0.1
+# FastAPI bind address for direct run and published ports
+FASTAPI_HOST=127.0.0.1
 
 # CODEANALYST web UI internal port
 CODEANALYST_PORT=11000

@@ -46,7 +46,7 @@ _cmd_lock = threading.Lock()
 
 def load_server_config() -> tuple[str, int]:
     """Read host/port from the already loaded environment."""
-    host = os.environ.get("HOST") or os.environ.get("CODEANALYST_HOST") or "127.0.0.1"
+    host = os.environ.get("FASTAPI_HOST") or "127.0.0.1"
     port = int(os.environ.get("CODEANALYST_PORT", "11000") or "11000")
     if not (1 <= port <= 65535):
         raise ValueError("CODEANALYST_PORT must be 1-65535.")
