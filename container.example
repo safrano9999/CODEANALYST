@@ -1,2 +1,3 @@
 # CODEANALYST web UI host port
+#required: CODEANALYST published host port
 CODEANALYST_PUBLISH_PORT=11000

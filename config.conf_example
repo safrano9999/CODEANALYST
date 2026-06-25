@@ -1,5 +1,7 @@
 # FastAPI bind address for direct run and published ports
+#required: FastAPI bind host
 FASTAPI_HOST=127.0.0.1
 
 # CODEANALYST web UI internal port
+#required: CODEANALYST internal web UI port
 CODEANALYST_PORT=11000
