@@ -27,7 +27,7 @@ python webui.py
 
 ## Container
 
-Pre-built image on Docker Hub: `docker.io/safrano9999/codeanalyst:latest`
+Pre-built image on GHCR: `ghcr.io/safrano9999/codeanalyst:latest`
 
 ```bash
 docker pull safrano9999/codeanalyst
@@ -42,7 +42,7 @@ docker run --rm -d --name codeanalyst -p 11000:11000 -v /:/host:ro safrano9999/c
 
 The host filesystem will be available under `/host` inside the container.
 
-Base image: `docker.io/safrano9999/python-fastapi:3.13`
+Base image: `ghcr.io/safrano9999/python-fastapi:3.13`
 
 The repository includes:
 - `Containerfile`
