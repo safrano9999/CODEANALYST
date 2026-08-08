@@ -1,0 +1,13 @@
+[Unit]
+Description=CODEANALYST
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/safrano9999/CODEANALYST
+PassEnvironment=CODEANALYST_PORT
+ExecStart=uvicorn webui:app --host 0.0.0.0 --port ${CODEANALYST_PORT}
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
