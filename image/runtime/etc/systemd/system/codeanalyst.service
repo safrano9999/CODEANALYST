@@ -7,6 +7,7 @@ Type=simple
 WorkingDirectory=/opt/safrano9999/CODEANALYST
 PassEnvironment=CODEANALYST_PORT
 ExecStart=uvicorn webui:app --host 0.0.0.0 --port ${CODEANALYST_PORT}
+ExecStartPost=/bin/bash -c 'exec /usr/local/libexec/fedora44-wait-ready --timeout 60 tcp 127.0.0.1 "$${CODEANALYST_PORT}"'
 Restart=on-failure
 
 [Install]
